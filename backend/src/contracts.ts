@@ -122,4 +122,10 @@ export interface RuntimeStore {
   portfolios: PortfolioImpactRequest[];
   briefings: BriefingResponse[];
   memoryEntries: ProcessMemoryEntry[];
+  meta?: {
+    lastIngestedAt?: string;
+    lastAnalyzedAt?: string;
+    lastSignalsAt?: string;
+    lastBriefingAt?: string;
+  };
 }

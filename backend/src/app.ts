@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import { refreshFeedPipeline, runAnalyzeStep, runIngestStep } from './services/feed-pipeline.js';
 import {
   getBriefing,
   getFeed,
@@ -53,6 +54,33 @@ export function createApp() {
         return;
       }
       res.json(briefing);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/api/internal/ingest', async (_req, res, next) => {
+    try {
+      const articles = await runIngestStep();
+      res.json({ count: articles.length, articles });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/api/internal/analyze', async (req, res, next) => {
+    try {
+      const articles = Array.isArray(req.body?.articles) ? req.body.articles : [];
+      res.json({ count: articles.length, events: await runAnalyzeStep(articles) });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/api/internal/feed/refresh', async (req, res, next) => {
+    try {
+      const force = req.body?.force === true;
+      res.json(await refreshFeedPipeline(force));
     } catch (error) {
       next(error);
     }

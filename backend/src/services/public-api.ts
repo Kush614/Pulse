@@ -9,6 +9,7 @@ import type {
   TradeSignal,
 } from '../contracts.js';
 import { RuntimeStoreRepository } from '../lib/runtime-store.js';
+import { refreshFeedPipeline } from './feed-pipeline.js';
 import { loadFallbackBriefing, loadFallbackEvents, loadFallbackSignals } from './fallback-data.js';
 
 const storeRepo = new RuntimeStoreRepository();
@@ -39,12 +40,17 @@ async function remember(entry: Omit<ProcessMemoryEntry, 'id' | 'recordedAt'>): P
 
 export async function getFeed(): Promise<FeedEvent[]> {
   const store = await storeRepo.read();
-  const events = store.events.length > 0 ? store.events : await loadFallbackEvents();
+  const refreshed = await refreshFeedPipeline(false);
+  const events = refreshed.events.length > 0
+    ? refreshed.events
+    : store.events.length > 0
+      ? store.events
+      : await loadFallbackEvents();
   await remember({
     scope: 'pipeline',
     title: 'Feed requested',
-    details: `Returned ${events.length} events from ${store.events.length > 0 ? 'runtime store' : 'fallback cache'}.`,
-    metadata: { count: events.length, memoriEnabled: Boolean(env.MEMORI_API_KEY) },
+    details: `Returned ${events.length} events from ${refreshed.events.length > 0 ? 'live pipeline' : store.events.length > 0 ? 'runtime store' : 'fallback cache'}.`,
+    metadata: { count: events.length, memoriEnabled: Boolean(env.MEMORI_API_KEY), stale: refreshed.stale },
   });
   return events;
 }
