@@ -1,6 +1,6 @@
 # Pulse
 
-Real-time news intelligence across web and mobile, with live feed clustering, bias-aware story framing, AI briefings, portfolio context, and a world-monitor dashboard.
+Real-time news intelligence across web and mobile, with live feed clustering, bias-aware story framing, AI briefings, portfolio context, and a world-monitor dashboard. Entire backend running on Insforge database, auth, AI gateway and storage.
 
 Built for the Fontaine Founders Hackathon, April 2026, San Francisco.
 
