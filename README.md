@@ -340,5 +340,4 @@ The worldmonitor directory extends the World Monitor codebase and preserves its 
 
 ## License
 
-- `worldmonitor/` builds on [World Monitor](https://github.com/maxxie114/intel-marketplace) and remains under AGPL-3.0 obligations where applicable.
-- The Pulse-specific backend and mobile additions in this repo are the hackathon implementation for this project.
+MIT
