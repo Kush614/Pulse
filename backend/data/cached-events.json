@@ -1,0 +1,176 @@
+[
+  {
+    "id": "evt-fed-pause",
+    "headline": "Fed signals a longer pause as inflation cools unevenly across services",
+    "topic": "MACRO",
+    "topicColor": "#00C7BE",
+    "time": "34m",
+    "objectivity": 88,
+    "sources": 9,
+    "urgency": 2,
+    "brief": "Federal Reserve officials reiterated a cautious stance on cuts while acknowledging slower inflation in core goods. The market implication is a tighter-for-longer regime that pressures rate-sensitive assets but supports dollar resilience.",
+    "viewpoints": [
+      {
+        "label": "LEFT",
+        "pct": 24,
+        "color": "#4DA3FF",
+        "take": "Progressive coverage frames the pause as proof that inflation progress exists but the burden of high rates is falling unevenly on households and labor."
+      },
+      {
+        "label": "CENTER",
+        "pct": 49,
+        "color": "#9AA5B1",
+        "take": "Centrist and wire coverage focuses on the data dependency message: easing is possible later, but policy will stay restrictive until services inflation cools more clearly."
+      },
+      {
+        "label": "RIGHT",
+        "pct": 27,
+        "color": "#FF8A65",
+        "take": "Conservative coverage interprets the pause as evidence that inflation remains sticky and that premature easing would risk another price surge."
+      }
+    ],
+    "biasDistribution": {
+      "left": 24,
+      "center": 49,
+      "right": 27
+    },
+    "sectorImpact": [
+      {
+        "sector": "Real Estate",
+        "impact": -6.2,
+        "color": "#FF3B30"
+      },
+      {
+        "sector": "Financials",
+        "impact": 2.1,
+        "color": "#34C759"
+      }
+    ],
+    "relatedTickers": [
+      {
+        "symbol": "IYR",
+        "change": -4.8
+      },
+      {
+        "symbol": "UUP",
+        "change": 3.2
+      }
+    ]
+  },
+  {
+    "id": "evt-rare-earths",
+    "headline": "China expands export controls on rare earth processing technology",
+    "topic": "GEOPOLITICS",
+    "topicColor": "#FF9500",
+    "time": "52m",
+    "objectivity": 84,
+    "sources": 11,
+    "urgency": 3,
+    "brief": "Beijing widened restrictions on rare earth processing know-how, raising the probability of tighter supply in magnets and semiconductor-linked manufacturing. Domestic US and allied suppliers gain strategic leverage if downstream buyers scramble to diversify capacity.",
+    "viewpoints": [
+      {
+        "label": "LEFT",
+        "pct": 21,
+        "color": "#4DA3FF",
+        "take": "Left-leaning coverage emphasizes industrial policy and argues Western dependence on a concentrated supply chain was a policy failure in the first place."
+      },
+      {
+        "label": "CENTER",
+        "pct": 45,
+        "color": "#9AA5B1",
+        "take": "Center coverage describes the controls as a strategic response in the broader US-China technology contest and highlights potential supply bottlenecks."
+      },
+      {
+        "label": "RIGHT",
+        "pct": 34,
+        "color": "#FF8A65",
+        "take": "Right-leaning outlets frame the move as coercive economic leverage and call for accelerated domestic mining and processing capability."
+      }
+    ],
+    "biasDistribution": {
+      "left": 21,
+      "center": 45,
+      "right": 34
+    },
+    "sectorImpact": [
+      {
+        "sector": "Materials",
+        "impact": 8.4,
+        "color": "#34C759"
+      },
+      {
+        "sector": "Semiconductors",
+        "impact": -3.6,
+        "color": "#FF3B30"
+      }
+    ],
+    "relatedTickers": [
+      {
+        "symbol": "MP",
+        "change": 8.4
+      },
+      {
+        "symbol": "NVDA",
+        "change": -2.2
+      }
+    ]
+  },
+  {
+    "id": "evt-red-sea",
+    "headline": "Red Sea disruptions lift freight stress and reignite energy supply concerns",
+    "topic": "COMMODITIES",
+    "topicColor": "#FF3B30",
+    "time": "1h",
+    "objectivity": 81,
+    "sources": 7,
+    "urgency": 3,
+    "brief": "Fresh disruptions in the Red Sea increased tanker rerouting and extended transit times, pushing traders to reprice shipping risk and downstream energy sensitivity. Energy producers and logistics hedges benefit while transport-heavy sectors absorb margin pressure.",
+    "viewpoints": [
+      {
+        "label": "LEFT",
+        "pct": 19,
+        "color": "#4DA3FF",
+        "take": "Left coverage leans toward humanitarian and regional stability implications while warning that consumers ultimately absorb higher transport and fuel costs."
+      },
+      {
+        "label": "CENTER",
+        "pct": 51,
+        "color": "#9AA5B1",
+        "take": "Center coverage focuses on freight rerouting, insurance premiums, and energy-price pass-through rather than taking a strong geopolitical angle."
+      },
+      {
+        "label": "RIGHT",
+        "pct": 30,
+        "color": "#FF8A65",
+        "take": "Right-leaning coverage frames the episode as another reminder that maritime choke points translate directly into energy and inflation risk."
+      }
+    ],
+    "biasDistribution": {
+      "left": 19,
+      "center": 51,
+      "right": 30
+    },
+    "sectorImpact": [
+      {
+        "sector": "Energy",
+        "impact": 5.7,
+        "color": "#34C759"
+      },
+      {
+        "sector": "Industrials",
+        "impact": -2.5,
+        "color": "#FF3B30"
+      }
+    ],
+    "relatedTickers": [
+      {
+        "symbol": "XLE",
+        "change": 4.1
+      },
+      {
+        "symbol": "UPS",
+        "change": -1.8
+      }
+    ]
+  }
+]

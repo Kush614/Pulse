@@ -1,6 +1,12 @@
 .env
 .env.*
 !.env.example
+node_modules/
+dist/
+backend/data/runtime-store.json
+backend/data/process-memory.json
+backend/public/briefings/fallback-briefing.wav
+backend/public/briefings/generated-*.mp3
 worldmonitor/README.md
 worldmonitor/CODE_OF_CONDUCT.md
 worldmonitor/CONTRIBUTING.md

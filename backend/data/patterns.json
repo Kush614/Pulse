@@ -1,0 +1,56 @@
+[
+  {
+    "id": "fed-pause-reits",
+    "keywords": ["fed", "pause", "inflation", "rates"],
+    "preferredTickers": ["IYR", "UUP"],
+    "direction": "SHORT",
+    "timeframe": "60-90d",
+    "expectedMove": "-8.0%",
+    "description": "Fed pause with sticky services inflation has historically pressured rate-sensitive real estate and favored the dollar."
+  },
+  {
+    "id": "rare-earth-controls",
+    "keywords": ["rare earth", "export control", "china", "minerals"],
+    "preferredTickers": ["MP", "XLB"],
+    "direction": "LONG",
+    "timeframe": "45-90d",
+    "expectedMove": "+14.0%",
+    "description": "Strategic-mineral export controls tend to re-rate domestic and allied producers higher over the next one to three months."
+  },
+  {
+    "id": "oil-supply-disruption",
+    "keywords": ["red sea", "shipping", "opec", "oil", "lng", "freight"],
+    "preferredTickers": ["XLE", "USO"],
+    "direction": "LONG",
+    "timeframe": "15-45d",
+    "expectedMove": "+7.0%",
+    "description": "Maritime chokepoint stress usually lifts energy risk premia and supports oil-linked equities."
+  },
+  {
+    "id": "semiconductor-shock",
+    "keywords": ["chip", "semiconductor", "export ban", "datacenter", "nvidia"],
+    "preferredTickers": ["SMH", "NVDA"],
+    "direction": "HEDGE",
+    "timeframe": "15-60d",
+    "expectedMove": "+5.0%",
+    "description": "Semiconductor policy shocks tend to raise volatility first and only later separate winners from losers."
+  },
+  {
+    "id": "banking-stress",
+    "keywords": ["bank", "liquidity", "deposit", "credit", "treasury"],
+    "preferredTickers": ["XLF", "KRE"],
+    "direction": "HEDGE",
+    "timeframe": "15-45d",
+    "expectedMove": "+4.0%",
+    "description": "Bank liquidity shocks often favor defensive hedges and selective exposure rather than broad directional bets."
+  },
+  {
+    "id": "earnings-upside",
+    "keywords": ["earnings", "guidance", "revenue beat", "margin expansion"],
+    "preferredTickers": ["XLY", "XLK"],
+    "direction": "LONG",
+    "timeframe": "15-30d",
+    "expectedMove": "+6.0%",
+    "description": "Positive guidance revisions typically support momentum in the reporting sector over the next few weeks."
+  }
+]
