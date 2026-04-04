@@ -13,6 +13,7 @@
     "seed:demo": "tsx scripts/seed-demo-data.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "@insforge/sdk": "^1.2.2",
     "@memorilabs/memori": "^0.0.8",
     "cors": "^2.8.5",

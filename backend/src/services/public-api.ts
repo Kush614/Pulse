@@ -9,8 +9,11 @@ import type {
   TradeSignal,
 } from '../contracts.js';
 import { RuntimeStoreRepository } from '../lib/runtime-store.js';
+import { generateBriefing } from './briefing.js';
 import { refreshFeedPipeline } from './feed-pipeline.js';
 import { loadFallbackBriefing, loadFallbackEvents, loadFallbackSignals } from './fallback-data.js';
+import { calculatePortfolioImpact } from './portfolio-impact.js';
+import { generateSignals } from './signals.js';
 
 const storeRepo = new RuntimeStoreRepository();
 
@@ -21,10 +24,6 @@ function round(value: number, digits = 2): number {
 function parseExpectedMove(move: string): number {
   const numeric = Number(move.replace(/[^\d.-]/g, ''));
   return Number.isFinite(numeric) ? numeric : 0;
-}
-
-function holdingNameFromTicker(ticker: string): string {
-  return ticker.toUpperCase();
 }
 
 async function remember(entry: Omit<ProcessMemoryEntry, 'id' | 'recordedAt'>): Promise<void> {
@@ -57,19 +56,18 @@ export async function getFeed(): Promise<FeedEvent[]> {
 
 export async function getSignals(): Promise<TradeSignal[]> {
   const store = await storeRepo.read();
-  const signals = store.signals.length > 0 ? store.signals : await loadFallbackSignals();
+  const signals = await generateSignals(false);
   await remember({
     scope: 'signals',
     title: 'Signals requested',
-    details: `Returned ${signals.length} trade signals from ${store.signals.length > 0 ? 'runtime store' : 'fallback cache'}.`,
+    details: `Returned ${signals.length} trade signals from ${signals.length > 0 ? 'live generator' : store.signals.length > 0 ? 'runtime store' : 'fallback cache'}.`,
     metadata: { count: signals.length },
   });
-  return signals;
+  return signals.length > 0 ? signals : await loadFallbackSignals();
 }
 
 export async function getBriefing(): Promise<BriefingResponse | null> {
-  const store = await storeRepo.read();
-  const briefing = store.briefings[0] ?? await loadFallbackBriefing();
+  const briefing = await generateBriefing(false);
   if (!briefing) return null;
   await remember({
     scope: 'briefing',
@@ -81,61 +79,15 @@ export async function getBriefing(): Promise<BriefingResponse | null> {
 }
 
 export async function getPortfolioImpact(request: PortfolioImpactRequest): Promise<PortfolioImpactResponse> {
-  const feed = await getFeed();
-  const signals = await getSignals();
-  const totalValue = request.holdings.reduce((sum, holding) => sum + holding.shares * holding.avgCost, 0);
-
-  const holdings: PortfolioHoldingImpact[] = request.holdings.map((holding) => {
-    const relatedFeed = feed.filter((event) =>
-      event.relatedTickers.some((ticker) => ticker.symbol.toUpperCase() === holding.ticker.toUpperCase())
-      || signals.some((signal) => signal.ticker.toUpperCase() === holding.ticker.toUpperCase() && signal.triggeringStory === event.headline),
-    );
-
-    const signalMatch = signals.find((signal) => signal.ticker.toUpperCase() === holding.ticker.toUpperCase());
-    const directMove = signalMatch ? parseExpectedMove(signalMatch.expectedMove) * (signalMatch.action === 'SHORT' ? -1 : 1) : 0;
-    const storyImpact = relatedFeed.reduce((sum, event) => {
-      const directTicker = event.relatedTickers.find((ticker) => ticker.symbol.toUpperCase() === holding.ticker.toUpperCase());
-      return sum + (directTicker?.change ?? 0);
-    }, 0);
-    const geoImpact = round(directMove + storyImpact);
-    const value = round(holding.shares * holding.avgCost);
-    const weight = totalValue > 0 ? round((value / totalValue) * 100) : 0;
-
-    return {
-      ticker: holding.ticker.toUpperCase(),
-      name: holdingNameFromTicker(holding.ticker),
-      weight,
-      value,
-      geoImpact,
-      exposedTo: relatedFeed.map((event) => ({
-        headline: event.headline,
-        impact: round(
-          event.relatedTickers.find((ticker) => ticker.symbol.toUpperCase() === holding.ticker.toUpperCase())?.change
-          ?? directMove
-          ?? 0,
-        ),
-      })),
-    };
-  });
-
-  const aggregateRisk = round(
-    holdings.reduce((sum, holding) => sum + Math.abs(holding.geoImpact) * (holding.weight / 100), 0),
-  );
-  const totalImpact = round(
-    holdings.reduce((sum, holding) => sum + (holding.geoImpact * holding.weight / 100), 0),
-  );
+  const [feed, signals] = await Promise.all([getFeed(), getSignals()]);
+  const result = await calculatePortfolioImpact(request, feed, signals);
 
   await remember({
     scope: 'portfolio',
     title: 'Portfolio impact calculated',
     details: `Calculated exposure for ${request.holdings.length} holdings.`,
-    metadata: { aggregateRisk, totalImpact },
+    metadata: { aggregateRisk: result.aggregateRisk, totalImpact: result.totalImpact },
   });
 
-  return {
-    totalValue: round(totalValue),
-    aggregateRisk,
-    totalImpact,
-    holdings,
-  };
+  return result;
 }

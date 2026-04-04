@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import { generateBriefing } from './services/briefing.js';
 import { refreshFeedPipeline, runAnalyzeStep, runIngestStep } from './services/feed-pipeline.js';
 import {
   getBriefing,
@@ -7,6 +8,7 @@ import {
   getPortfolioImpact,
   getSignals,
 } from './services/public-api.js';
+import { generateSignals } from './services/signals.js';
 
 export function createApp() {
   const app = express();
@@ -81,6 +83,22 @@ export function createApp() {
     try {
       const force = req.body?.force === true;
       res.json(await refreshFeedPipeline(force));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/api/internal/signals/refresh', async (req, res, next) => {
+    try {
+      res.json({ signals: await generateSignals(req.body?.force === true) });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/api/internal/briefing/refresh', async (req, res, next) => {
+    try {
+      res.json({ briefing: await generateBriefing(req.body?.force === true) });
     } catch (error) {
       next(error);
     }

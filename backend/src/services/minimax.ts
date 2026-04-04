@@ -1,14 +1,15 @@
 import OpenAI from 'openai';
 import { env } from '../env.js';
+import { attachMemori } from './memory-layer.js';
 
 const DEFAULT_MODEL = 'MiniMax-M2.1-highspeed';
 
 function getClient() {
   if (!env.MINIMAX_API_KEY) return null;
-  return new OpenAI({
+  return attachMemori(new OpenAI({
     apiKey: env.MINIMAX_API_KEY,
     baseURL: env.MINIMAX_BASE_URL || 'https://api.minimax.io/v1',
-  });
+  }), 'pulse-feed-analysis');
 }
 
 export interface MinimaxClusterAnalysis {

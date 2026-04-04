@@ -45,6 +45,10 @@ function cleanText(value: string): string {
     .trim();
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function normalizeTitle(title: string): string {
   return cleanText(title).toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -314,7 +318,10 @@ function buildRelatedTickers(headline: string, sectorImpact: SectorImpact[], sym
 
   for (const symbol of symbols) {
     const companyName = normalizeTitle(symbol.name);
-    if (lower.includes(companyName) || lower.includes(normalizeTitle(symbol.display))) {
+    const display = normalizeTitle(symbol.display);
+    const displayMatch = display.length >= 3 && new RegExp(`\\b${escapeRegExp(display)}\\b`).test(lower);
+    const companyMatch = companyName.length >= 4 && new RegExp(`\\b${escapeRegExp(companyName)}\\b`).test(lower);
+    if (companyMatch || displayMatch) {
       matches.push({ symbol: symbol.display, change: 2.2 });
     }
   }
