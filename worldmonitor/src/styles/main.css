@@ -1281,6 +1281,72 @@ body.panel-resize-active iframe {
 }
 
 
+/* Panel maximize button */
+.panel-maximize-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: opacity 0.2s, background 0.2s;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+.panel-maximize-btn:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.1);
+}
+
+/* Panel maximized state — fullscreen overlay */
+.panel.panel-maximized {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 10000 !important;
+  grid-column: unset !important;
+  grid-row: unset !important;
+  border-radius: 0 !important;
+  min-height: unset !important;
+  max-height: unset !important;
+  contain: unset !important;
+  overflow: hidden !important;
+}
+.panel.panel-maximized .panel-content {
+  flex: 1;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  max-height: none !important;
+}
+.panel.panel-maximized .panel-header {
+  padding: 10px 16px;
+}
+.panel.panel-maximized .panel-maximize-btn {
+  opacity: 1;
+}
+/* Hide resize handles when maximized */
+.panel.panel-maximized .panel-resize-handle,
+.panel.panel-maximized .panel-col-resize-handle {
+  display: none;
+}
+/* Dim everything else when a panel is maximized */
+body.panel-maximized-active .panels-grid > *:not(.panel-maximized),
+body.panel-maximized-active .map-section,
+body.panel-maximized-active .top-bar,
+body.panel-maximized-active .map-bottom-grid > *:not(.panel-maximized) {
+  pointer-events: none;
+  opacity: 0.1;
+  filter: blur(2px);
+}
+
 .panel-data-badge {
   font-size: 9px;
   letter-spacing: 0.4px;

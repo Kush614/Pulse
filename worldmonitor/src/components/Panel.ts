@@ -246,6 +246,31 @@ export class Panel {
 
     this.header.appendChild(headerLeft);
 
+    // Maximize / zoom button
+    const maxBtn = document.createElement('button');
+    maxBtn.className = 'panel-maximize-btn';
+    maxBtn.title = 'Maximize panel';
+    maxBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+    maxBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isMax = this.element.classList.toggle('panel-maximized');
+      document.body.classList.toggle('panel-maximized-active', isMax);
+      maxBtn.innerHTML = isMax
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+      maxBtn.title = isMax ? 'Restore panel' : 'Maximize panel';
+    });
+    // Escape key exits maximized
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.element.classList.contains('panel-maximized')) {
+        this.element.classList.remove('panel-maximized');
+        document.body.classList.remove('panel-maximized-active');
+        maxBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+        maxBtn.title = 'Maximize panel';
+      }
+    });
+    this.header.appendChild(maxBtn);
+
     this.statusBadgeEl = document.createElement('span');
     this.statusBadgeEl.className = 'panel-data-badge';
     this.statusBadgeEl.style.display = 'none';

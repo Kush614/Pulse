@@ -37,6 +37,13 @@ import {
 } from '@/components';
 import { SatelliteFiresPanel } from '@/components/SatelliteFiresPanel';
 import { ChatbotPanel } from '@/components/ChatbotPanel';
+import { BiasRadarPanel } from '@/components/BiasRadarPanel';
+import { VoiceBriefingPanel } from '@/components/VoiceBriefingPanel';
+import { DebateModePanel } from '@/components/DebateModePanel';
+import { ConsensusPanel } from '@/components/ConsensusPanel';
+import { CatchUpPanel } from '@/components/CatchUpPanel';
+import { BreakingNewsRealtimePanel } from '@/components/BreakingNewsRealtimePanel';
+import { PortfolioAdvisorPanel } from '@/components/PortfolioAdvisorPanel';
 import { focusInvestmentOnMap } from '@/services/investments-focus';
 import { debounce, saveToStorage, loadFromStorage } from '@/utils';
 import { escapeHtml } from '@/utils/sanitize';
@@ -445,6 +452,41 @@ export class PanelLayoutManager implements AppModule {
     const chatbotPanel = new ChatbotPanel();
     this.ctx.panels['chatbot'] = chatbotPanel;
     panelsGrid.appendChild(chatbotPanel.getElement());
+
+    // Nova News — Bias Radar
+    const biasRadarPanel = new BiasRadarPanel();
+    this.ctx.panels['bias-radar'] = biasRadarPanel;
+    panelsGrid.appendChild(biasRadarPanel.getElement());
+
+    // Nova News — Voice Briefing (ElevenLabs)
+    const voiceBriefingPanel = new VoiceBriefingPanel();
+    this.ctx.panels['voice-briefing'] = voiceBriefingPanel;
+    panelsGrid.appendChild(voiceBriefingPanel.getElement());
+
+    // Nova News — Multi-AI Consensus
+    const consensusPanel = new ConsensusPanel();
+    this.ctx.panels['consensus'] = consensusPanel;
+    panelsGrid.appendChild(consensusPanel.getElement());
+
+    // Nova News — Debate Mode
+    const debateModePanel = new DebateModePanel();
+    this.ctx.panels['debate-mode'] = debateModePanel;
+    panelsGrid.appendChild(debateModePanel.getElement());
+
+    // Nova News — What Did I Miss?
+    const catchUpPanel = new CatchUpPanel();
+    this.ctx.panels['catchup'] = catchUpPanel;
+    panelsGrid.appendChild(catchUpPanel.getElement());
+
+    // Nova News — Breaking News Realtime
+    const breakingRealtimePanel = new BreakingNewsRealtimePanel();
+    this.ctx.panels['breaking-realtime'] = breakingRealtimePanel;
+    panelsGrid.appendChild(breakingRealtimePanel.getElement());
+
+    // Nova News — AI Portfolio Advisor
+    const portfolioAdvisorPanel = new PortfolioAdvisorPanel();
+    this.ctx.panels['portfolio-advisor'] = portfolioAdvisorPanel;
+    panelsGrid.appendChild(portfolioAdvisorPanel.getElement());
 
     const politicsPanel = new NewsPanel('politics', t('panels.politics'));
     this.attachRelatedAssetHandlers(politicsPanel);

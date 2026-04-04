@@ -1200,6 +1200,12 @@ export default defineConfig({
     // All proxy routes replaced by apifyPlugin() above.
     // Apify plugin handles /api/*, /rss/*, with actor datasets or direct HTTP fallback.
     proxy: {
+      // Nova News backend API
+      '/nova': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/nova/, ''),
+      },
       // AISStream WebSocket — kept as proxy since WebSocket can't go through Apify
       '/ws/aisstream': {
         target: 'wss://stream.aisstream.io',
