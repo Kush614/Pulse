@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import {
   ActionButton,
@@ -13,6 +14,10 @@ import {
   ToggleChip,
 } from '../../theme/ui';
 import { palette, radius, spacing, typography } from '../../theme/tokens';
+import { Routes } from '../../navigation';
+import { useAppFlow } from '../../state/appFlowContext';
+import type { StoryContext } from '../../contracts';
+import { fromStoryContext } from './story-adapters';
 import type { FocusProfile, Story } from './types';
 
 const styles = StyleSheet.create({
@@ -67,11 +72,15 @@ export function StoryDetailScreen({
   story,
   onBack,
   onOpenSources,
+  onDiscuss,
+  onSaveDecision,
 }: {
   focusProfile: FocusProfile;
   story: Story;
   onBack: () => void;
   onOpenSources: () => void;
+  onDiscuss?: () => void;
+  onSaveDecision?: () => void;
 }) {
   return (
     <ScreenShell>
@@ -143,17 +152,58 @@ export function StoryDetailScreen({
           <View style={styles.placeholderCard}>
             <Text style={styles.placeholderTitle}>Discuss With AI</Text>
             <Text style={styles.placeholderBody}>
-              Person 2 will attach the active story context, chat prompts, and previous thread history here.
+              Open the story-bound chat to compare viewpoints, ask about second-order effects, and build a reusable thread history.
             </Text>
+            {onDiscuss ? (
+              <ActionButton label="Open Discussion" onPress={onDiscuss} />
+            ) : null}
           </View>
           <View style={styles.placeholderCard}>
             <Text style={styles.placeholderTitle}>Save Decision</Text>
             <Text style={styles.placeholderBody}>
-              Person 2 will connect watchlist, alert, and conviction actions once decision persistence lands.
+              Capture a watchlist, alert, avoid, or conviction decision and link it back to the active discussion.
             </Text>
+            {onSaveDecision ? (
+              <ActionButton label="Save Decision" variant="secondary" onPress={onSaveDecision} />
+            ) : null}
           </View>
         </View>
       </Card>
     </ScreenShell>
+  );
+}
+
+export default function StoryDetailRouteScreen() {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { focusProfile, stories } = useAppFlow();
+
+  const storyFromRoute = route.params?.story as StoryContext | undefined;
+  const storyId = route.params?.storyId as string | undefined;
+  const story =
+    (storyFromRoute ? fromStoryContext(storyFromRoute) : undefined) ??
+    stories.find((item) => item.id === storyId);
+
+  if (!story) {
+    return (
+      <ScreenShell>
+        <Card>
+          <SectionLabel>Story Missing</SectionLabel>
+          <BodyText>The selected story could not be loaded in this session.</BodyText>
+          <ActionButton label="Back To Feed" onPress={() => navigation.navigate(Routes.Feed)} />
+        </Card>
+      </ScreenShell>
+    );
+  }
+
+  return (
+    <StoryDetailScreen
+      focusProfile={focusProfile}
+      story={story}
+      onBack={() => navigation.goBack()}
+      onOpenSources={() => navigation.navigate(Routes.SourceLens, { storyId: story.id })}
+      onDiscuss={() => navigation.navigate(Routes.Chat, { storyId: story.id })}
+      onSaveDecision={() => navigation.navigate(Routes.Decision, { storyId: story.id })}
+    />
   );
 }

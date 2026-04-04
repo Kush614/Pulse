@@ -20,7 +20,6 @@ export default function MainStack() {
     <Stack.Navigator
       screenOptions={{
         headerShown: true,
-        headerBackTitleVisible: false,
         headerTintColor: '#1A1A2E',
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTitleStyle: { fontWeight: '600', fontSize: 17 },

@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { StoryContext } from '../contracts';
-import { asyncStorageAdapter } from './storage';
 
 const MAX_RECENT = 50;
 
@@ -12,24 +10,17 @@ interface RecentStoriesState {
 }
 
 export const useRecentStoriesStore = create<RecentStoriesState>()(
-  persist(
-    (set) => ({
-      stories: [],
+  (set) => ({
+    stories: [],
 
-      addStory: (story) =>
-        set((s) => {
-          // Deduplicate by event ID, move to front
-          const filtered = s.stories.filter(
-            (r) => r.event.id !== story.event.id,
-          );
-          return { stories: [story, ...filtered].slice(0, MAX_RECENT) };
-        }),
+    addStory: (story) =>
+      set((state) => {
+        const filtered = state.stories.filter(
+          (recent) => recent.event.id !== story.event.id,
+        );
+        return { stories: [story, ...filtered].slice(0, MAX_RECENT) };
+      }),
 
-      clearHistory: () => set({ stories: [] }),
-    }),
-    {
-      name: 'pulse.recentStories',
-      storage: createJSONStorage(() => asyncStorageAdapter),
-    },
-  ),
+    clearHistory: () => set({ stories: [] }),
+  }),
 );

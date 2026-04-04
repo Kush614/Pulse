@@ -1,5 +1,6 @@
 import { useDeferredValue, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import {
   ActionButton,
@@ -10,6 +11,10 @@ import {
   ToggleChip,
 } from '../../theme/ui';
 import { palette, spacing, typography } from '../../theme/tokens';
+import { Routes } from '../../navigation';
+import { useRecentStoriesStore, useSessionStore } from '../../state';
+import { useAppFlow } from '../../state/appFlowContext';
+import { toStoryContext } from '../story/story-adapters';
 import type { FeedFilter, FocusProfile, Story } from '../story/types';
 import { filterStories } from './story-helpers';
 import { StoryCard } from './StoryCard';
@@ -96,5 +101,31 @@ export function FeedScreen({
         <StoryCard key={story.id} story={story} onPress={() => onOpenStory(story)} />
       ))}
     </ScreenShell>
+  );
+}
+
+export default function FeedRouteScreen() {
+  const navigation = useNavigation<any>();
+  const { focusProfile, reopenSetup, stories } = useAppFlow();
+  const addRecentStory = useRecentStoriesStore((state) => state.addStory);
+  const setActiveStory = useSessionStore((state) => state.setActiveStory);
+
+  const handleOpenStory = (story: Story) => {
+    const context = toStoryContext(story);
+    addRecentStory(context);
+    setActiveStory(story.id);
+    navigation.navigate(Routes.StoryDetail, {
+      storyId: story.id,
+      story: context,
+    });
+  };
+
+  return (
+    <FeedScreen
+      focusProfile={focusProfile}
+      stories={stories}
+      onBack={reopenSetup}
+      onOpenStory={handleOpenStory}
+    />
   );
 }

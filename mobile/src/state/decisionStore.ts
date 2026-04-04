@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { DecisionRecord, DecisionAction } from '../contracts';
-import { asyncStorageAdapter } from './storage';
 
 interface DecisionState {
   decisions: DecisionRecord[];
@@ -14,34 +12,30 @@ interface DecisionState {
 }
 
 export const useDecisionStore = create<DecisionState>()(
-  persist(
-    (set, get) => ({
-      decisions: [],
+  (set, get) => ({
+    decisions: [],
 
-      addDecision: (decision) =>
-        set((s) => ({ decisions: [decision, ...s.decisions] })),
+    addDecision: (decision) =>
+      set((state) => ({ decisions: [decision, ...state.decisions] })),
 
-      updateDecision: (id, patch) =>
-        set((s) => ({
-          decisions: s.decisions.map((d) =>
-            d.id === id ? { ...d, ...patch, updatedAt: new Date().toISOString() } : d,
-          ),
-        })),
+    updateDecision: (id, patch) =>
+      set((state) => ({
+        decisions: state.decisions.map((decision) =>
+          decision.id === id
+            ? { ...decision, ...patch, updatedAt: new Date().toISOString() }
+            : decision,
+        ),
+      })),
 
-      removeDecision: (id) =>
-        set((s) => ({
-          decisions: s.decisions.filter((d) => d.id !== id),
-        })),
+    removeDecision: (id) =>
+      set((state) => ({
+        decisions: state.decisions.filter((decision) => decision.id !== id),
+      })),
 
-      getDecisionsForStory: (storyId) =>
-        get().decisions.filter((d) => d.storyId === storyId),
+    getDecisionsForStory: (storyId) =>
+      get().decisions.filter((decision) => decision.storyId === storyId),
 
-      getDecisionsByAction: (action) =>
-        get().decisions.filter((d) => d.action === action),
-    }),
-    {
-      name: 'pulse.decisions',
-      storage: createJSONStorage(() => asyncStorageAdapter),
-    },
-  ),
+    getDecisionsByAction: (action) =>
+      get().decisions.filter((decision) => decision.action === action),
+  }),
 );

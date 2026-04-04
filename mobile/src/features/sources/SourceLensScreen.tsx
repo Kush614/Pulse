@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import {
   ActionButton,
@@ -12,6 +13,7 @@ import {
   ToggleChip,
 } from '../../theme/ui';
 import { palette, radius, spacing, typography } from '../../theme/tokens';
+import { useAppFlow } from '../../state/appFlowContext';
 import type { BiasBucket, Story } from '../story/types';
 
 const styles = StyleSheet.create({
@@ -156,5 +158,20 @@ export function SourceLensScreen({
 
       <ActionButton label="Back To Story" variant="secondary" onPress={onBack} />
     </ScreenShell>
+  );
+}
+
+export default function SourceLensRouteScreen() {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { stories } = useAppFlow();
+  const storyId = route.params?.storyId as string | undefined;
+  const story = stories.find((item) => item.id === storyId) ?? stories[0];
+
+  return (
+    <SourceLensScreen
+      story={story}
+      onBack={() => navigation.goBack()}
+    />
   );
 }

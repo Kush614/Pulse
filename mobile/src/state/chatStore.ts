@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { ChatThreadSummary, ChatMessage } from '../contracts';
-import { asyncStorageAdapter } from './storage';
 
 interface ChatState {
   /** All thread summaries, newest first */
@@ -20,52 +18,46 @@ interface ChatState {
 }
 
 export const useChatStore = create<ChatState>()(
-  persist(
-    (set, get) => ({
-      threads: [],
-      messagesByThread: {},
-      lastOpenedThreadId: null,
+  (set, get) => ({
+    threads: [],
+    messagesByThread: {},
+    lastOpenedThreadId: null,
 
-      addThread: (thread) =>
-        set((s) => ({ threads: [thread, ...s.threads] })),
+    addThread: (thread) =>
+      set((state) => ({ threads: [thread, ...state.threads] })),
 
-      updateThread: (threadId, patch) =>
-        set((s) => ({
-          threads: s.threads.map((t) =>
-            t.id === threadId ? { ...t, ...patch } : t,
+    updateThread: (threadId, patch) =>
+      set((state) => ({
+        threads: state.threads.map((thread) =>
+          thread.id === threadId ? { ...thread, ...patch } : thread,
+        ),
+      })),
+
+    removeThread: (threadId) =>
+      set((state) => ({
+        threads: state.threads.filter((thread) => thread.id !== threadId),
+        messagesByThread: Object.fromEntries(
+          Object.entries(state.messagesByThread).filter(
+            ([key]) => key !== threadId,
           ),
-        })),
+        ),
+      })),
 
-      removeThread: (threadId) =>
-        set((s) => ({
-          threads: s.threads.filter((t) => t.id !== threadId),
-          messagesByThread: Object.fromEntries(
-            Object.entries(s.messagesByThread).filter(
-              ([key]) => key !== threadId,
-            ),
-          ),
-        })),
+    addMessage: (message) =>
+      set((state) => ({
+        messagesByThread: {
+          ...state.messagesByThread,
+          [message.threadId]: [
+            ...(state.messagesByThread[message.threadId] ?? []),
+            message,
+          ],
+        },
+      })),
 
-      addMessage: (message) =>
-        set((s) => ({
-          messagesByThread: {
-            ...s.messagesByThread,
-            [message.threadId]: [
-              ...(s.messagesByThread[message.threadId] ?? []),
-              message,
-            ],
-          },
-        })),
+    setLastOpenedThread: (threadId) =>
+      set({ lastOpenedThreadId: threadId }),
 
-      setLastOpenedThread: (threadId) =>
-        set({ lastOpenedThreadId: threadId }),
-
-      getThreadForStory: (storyId) =>
-        get().threads.find((t) => t.storyId === storyId),
-    }),
-    {
-      name: 'pulse.chatThreads',
-      storage: createJSONStorage(() => asyncStorageAdapter),
-    },
-  ),
+    getThreadForStory: (storyId) =>
+      get().threads.find((thread) => thread.storyId === storyId),
+  }),
 );

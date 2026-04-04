@@ -1,19 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState, startTransition } from 'react';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { FeedScreen } from './src/features/feed/FeedScreen';
 import { FocusSetupScreen } from './src/features/focus/FocusSetupScreen';
-import { SourceLensScreen } from './src/features/sources/SourceLensScreen';
-import { StoryDetailScreen } from './src/features/story/StoryDetailScreen';
+import { TabNavigator } from './src/navigation';
 import {
-  DEFAULT_FOCUS_PROFILE,
-  demoStories,
-  findStoryById,
-  type FocusProfile,
-  type ScreenName,
-  type Story,
-} from './src/features/story/types';
+  AppFlowProvider,
+  DEFAULT_APP_STORIES,
+} from './src/state/appFlowContext';
+import { DEFAULT_FOCUS_PROFILE, type FocusProfile } from './src/features/story/types';
 import { usePulseFonts } from './src/theme/usePulseFonts';
 import { palette } from './src/theme/tokens';
 
@@ -26,11 +22,23 @@ const styles = StyleSheet.create({
   },
 });
 
+const navTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: palette.canvas,
+    card: palette.surface,
+    text: palette.text,
+    primary: palette.accent,
+    border: palette.line,
+    notification: palette.warning,
+  },
+};
+
 export default function App() {
   const [fontsLoaded] = usePulseFonts();
-  const [screen, setScreen] = useState<ScreenName>('focus');
   const [focusProfile, setFocusProfile] = useState<FocusProfile>(DEFAULT_FOCUS_PROFILE);
-  const [selectedStoryId, setSelectedStoryId] = useState<string>(demoStories[0]?.id ?? '');
+  const [setupComplete, setSetupComplete] = useState(false);
 
   if (!fontsLoaded) {
     return (
@@ -41,55 +49,31 @@ export default function App() {
     );
   }
 
-  const selectedStory = findStoryById(selectedStoryId) ?? demoStories[0];
-
-  const navigate = (next: ScreenName) => {
-    startTransition(() => {
-      setScreen(next);
-    });
-  };
-
-  const handleFocusContinue = (profile: FocusProfile) => {
-    setFocusProfile(profile);
-    navigate('feed');
-  };
-
-  const handleSelectStory = (story: Story) => {
-    setSelectedStoryId(story.id);
-    navigate('story');
+  const contextValue = {
+    focusProfile,
+    setFocusProfile,
+    setupComplete,
+    completeSetup: (profile: FocusProfile) => {
+      setFocusProfile(profile);
+      setSetupComplete(true);
+    },
+    reopenSetup: () => setSetupComplete(false),
+    stories: DEFAULT_APP_STORIES,
   };
 
   return (
-    <>
-      {screen === 'focus' ? (
+    <AppFlowProvider value={contextValue}>
+      {!setupComplete ? (
         <FocusSetupScreen
           initialProfile={focusProfile}
-          onContinue={handleFocusContinue}
+          onContinue={contextValue.completeSetup}
         />
-      ) : null}
-      {screen === 'feed' ? (
-        <FeedScreen
-          focusProfile={focusProfile}
-          stories={demoStories}
-          onBack={() => navigate('focus')}
-          onOpenStory={handleSelectStory}
-        />
-      ) : null}
-      {screen === 'story' && selectedStory ? (
-        <StoryDetailScreen
-          focusProfile={focusProfile}
-          story={selectedStory}
-          onBack={() => navigate('feed')}
-          onOpenSources={() => navigate('sources')}
-        />
-      ) : null}
-      {screen === 'sources' && selectedStory ? (
-        <SourceLensScreen
-          story={selectedStory}
-          onBack={() => navigate('story')}
-        />
-      ) : null}
+      ) : (
+        <NavigationContainer theme={navTheme}>
+          <TabNavigator />
+        </NavigationContainer>
+      )}
       <StatusBar style="dark" />
-    </>
+    </AppFlowProvider>
   );
 }
