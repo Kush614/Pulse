@@ -1,222 +1,290 @@
-# World Monitor — AI Intelligence Marketplace
+# Pulse — AI-Powered News Intelligence Platform
 
-Real-time world intelligence as a paid AI service. Combines live news, social signals, financial data, and deep web research into a single autonomous agent that both **sells** intelligence to buyers and **buys** from other agents on the Nevermined marketplace.
+**Real-time news intelligence with bias detection, multi-perspective consensus, voice briefings, and AI-driven portfolio analysis.**
 
-**Paid endpoint:** `https://us14.abilityai.dev/api/paid/intel-marketplace-2/chat`
+Built with **InsForge** (Backend-as-a-Service + AI Gateway), **ElevenLabs** (Text-to-Speech), and **36 free public APIs** powering a live geopolitical dashboard.
+
+> Built for the Fontaine Founders Hackathon (April 2026, San Francisco)
 
 ---
 
 ## What It Does
 
-- **Sells intelligence** — buyers pay Nevermined credits to query the agent for geopolitical briefings, AI trends, financial data, social signals, and deep research
-- **Buys autonomously** — every 30 minutes the agent purchases intelligence from other marketplace sellers and routes queries to the best available seller via the Agent Staffing Agency
-- **Real-time data** — powered by Apify (Google News, Twitter/X, Reddit, financial scraping) and EXA (semantic web + news search)
-- **Interactive dashboard** — live world map with conflict tracking, market data, aviation, maritime, cyber threats, and an AI chatbot
+Pulse is a full-stack intelligence platform that aggregates real-time news from multiple free sources, analyzes bias and credibility using AI, and presents actionable insights through an interactive dashboard.
+
+### Core Features
+
+| Feature | Description |
+|---------|-------------|
+| **Bias Radar** | Analyzes political lean, emotional tone, sensationalism, and credibility across multiple news sources for any topic |
+| **Multi-AI Consensus** | Three AI perspectives (Factual Analyst, Critical Skeptic, Context Expert) analyze the same story independently, then synthesize a balanced view |
+| **Debate Mode** | Generates structured pro/con arguments with cited sources and dual-voice audio playback |
+| **Voice Briefing** | ElevenLabs-powered audio briefings in 10 languages with full transcript and source list |
+| **AI Portfolio Advisor** | Fetches latest news and predicts impact on your portfolio — per-asset direction, confidence, and actionable advice |
+| **What Did I Miss** | Personalized catch-up briefings based on your topics since your last visit |
+| **Breaking News** | Real-time feed with urgency scoring and browser notifications |
+| **Nova Chat** | Streaming AI news analyst with real-time source context — ask anything about current events |
+| **World Monitor Dashboard** | Live map with 36+ data feeds: conflicts, markets, crypto, aviation, maritime, cyber threats, earthquakes, weather, and more |
 
 ---
 
 ## Architecture
 
 ```
-Buyer → Nevermined x402 Payment → Trinity Paid Endpoint
-                                        ↓
-                              FastAPI (port 3000)
-                                        ↓
-                          Strands Agent (Claude Sonnet)
-                          ┌─────────────────────────────┐
-                          │  search_news_and_web         │ ← Apify + EXA
-                          │  search_social_signals       │ ← Apify Twitter/Reddit
-                          │  search_financial_data       │ ← Apify Finance + EXA
-                          │  deep_web_research           │ ← EXA semantic search
-                          │  consult_marketplace_agents  │ ← Nevermined discovery
-                          │  consult_staffing_agency     │ ← Agent Staffing Agency
-                          └─────────────────────────────┘
-
-Frontend (Vercel) → /api/intel-chat → Trinity agent → FastAPI
+                        ┌──────────────────────────────────────┐
+                        │          Frontend (Vite + TS)         │
+                        │     World Monitor Dashboard + Nova    │
+                        │        localhost:3000                 │
+                        └──────────┬───────────────────────────┘
+                                   │ /nova proxy
+                        ┌──────────▼───────────────────────────┐
+                        │       Nova Backend (Express + TS)     │
+                        │         localhost:3001                │
+                        ├───────────────────────────────────────┤
+                        │                                       │
+  ┌─────────────────┐   │   ┌─────────────┐  ┌──────────────┐  │
+  │  Google News RSS │◄──┤   │  InsForge    │  │  ElevenLabs  │  │
+  │  GDELT API      │   │   │  AI Gateway  │  │  TTS API     │  │
+  │  Hacker News    │   │   │  (GPT-4o-m)  │  │  (10 langs)  │  │
+  │  Reddit JSON    │   │   └──────┬───────┘  └──────────────┘  │
+  │  CoinGecko      │   │          │                             │
+  └─────────────────┘   │   ┌──────▼───────┐                    │
+                        │   │  InsForge DB  │                    │
+  36 Free Public APIs   │   │  (Postgres)   │                    │
+  (Yahoo, USGS, NOAA,  │   │  Auth, Storage│                    │
+   OpenSky, ACLED...)   │   └──────────────┘                    │
+                        └───────────────────────────────────────┘
 ```
 
 ---
 
-## Tools
+## Tech Stack
 
-### Nevermined
+### Backend (`/server`)
+- **Runtime:** Node.js + TypeScript (tsx)
+- **Framework:** Express with CORS, SSE streaming
+- **AI Gateway:** InsForge AI Gateway → OpenAI GPT-4o-mini (routed via OpenRouter to 100+ models)
+- **Database:** InsForge Postgres (articles, bias scores, reports, user preferences, query history, breaking news)
+- **Authentication:** InsForge Auth (signup/login with JWT tokens)
+- **TTS:** ElevenLabs API with multilingual v2 model, dual-voice debate audio
+- **News Sources:** Google News RSS, GDELT, Hacker News Algolia, Reddit JSON API, CoinGecko
 
-The agent is registered on the Nevermined sandbox marketplace as both a buyer and a seller.
+### Frontend (`/worldmonitor`)
+- **Build:** Vite + TypeScript (vanilla, no framework)
+- **UI:** Panel-based dashboard with drag/drop, resize, maximize/fullscreen
+- **Data:** 36+ free APIs for live geopolitical intelligence (conflicts, markets, aviation, maritime, cyber, weather, seismic)
+- **Proxy:** Vite dev proxy `/nova` → `localhost:3001`
 
-**Selling:** The FastAPI server uses `payments_py` middleware to verify x402 payment tokens on every request. Buyers order a plan, get an access token, and call the endpoint with a `payment-signature` header.
-
-```python
-from payments_py import Payments, PaymentOptions
-payments = Payments.get_instance(PaymentOptions(nvm_api_key="YOUR_KEY", environment="sandbox"))
-payments.plans.order_plan("3752853475618467090095078814547168619421798970303024103447800626832273878283")
-token = payments.x402.get_x402_access_token(plan_id, agent_id)
-# POST to https://us14.abilityai.dev/api/paid/intel-marketplace-2/chat
-# with header: payment-signature: {token}
-```
-
-**Buying:** `scripts/auto_trade.py` discovers active sellers via the Nevermined hackathon discovery API, orders their plans, generates x402 access tokens, and calls their endpoints autonomously. Runs every 30 minutes via Trinity.
-
-**A2A agent card:** `GET /.well-known/agent.json` exposes standard agent capabilities with Nevermined payment extension.
-
-- Plan ID: `3752853475618467090095078814547168619421798970303024103447800626832273878283`
-- Agent ID: `63046025305469270040963931107827858539408991598001521799587728626823677599318`
-
-See: `hackathons/agents/world-monitor-agent/src/tools/nvm_discovery.py`, `scripts/auto_trade.py`
-
----
-
-### Trinity (TrinityOS)
-
-The backend agent runs on Trinity — a managed Claude Code runtime that handles deployment, scheduling, and MCP tool access.
-
-- The FastAPI server (`src/web.py`) runs inside the Trinity container on port 3000
-- Trinity exposes the paid endpoint at `https://us14.abilityai.dev/api/paid/intel-marketplace-2/chat`
-- Auto-trade is scheduled every 30 minutes via Trinity's cron scheduler (`*/30 * * * *`)
-- `CLAUDE.md` provides instructions to the Trinity Claude Code agent for starting the server and running trades
+### Services Used
+| Service | Purpose | Tier |
+|---------|---------|------|
+| **InsForge** | Database, Auth, AI Gateway, Storage | Free |
+| **ElevenLabs** | Text-to-Speech (voice briefings, debates) | Free tier |
+| **Google News RSS** | News aggregation | Free, no key |
+| **GDELT** | Geopolitical event analysis | Free, no key |
+| **Hacker News** | Tech news | Free, no key |
+| **Reddit** | Social signals | Free, no key |
+| **CoinGecko** | Crypto prices | Free, no key |
+| + 30 more | See worldmonitor data feeds | Free |
 
 ---
 
-### Apify
+## API Endpoints
 
-Apify Actors power all live data scraping. Every paid query triggers actors in parallel with EXA search, then synthesizes results into an AI briefing.
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Create account |
+| POST | `/api/auth/login` | Login, returns JWT |
+| GET | `/api/auth/me` | Get current user |
 
-| Tool | Apify Actor | Data |
-|------|-------------|------|
-| `fetch_news` | Google News scraper | Breaking news, headlines |
-| `fetch_tweets` | Twitter/X scraper | Social sentiment, viral topics |
-| `fetch_reddit` | Reddit scraper | Community discussion, upvotes |
-| `fetch_finance` | Financial data actor | Stock prices, market data |
-| `fetch_web_content` | Web content extractor | Full article text |
+### News & Analysis
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/news` | Fetch news from selected sources |
+| POST | `/api/bias-radar` | Bias analysis across sources for a topic |
+| POST | `/api/consensus` | Multi-perspective AI consensus analysis |
+| POST | `/api/debate` | Generate pro/con debate with optional audio |
+| POST | `/api/chat` | Streaming SSE chat with real-time news context |
+| POST | `/api/chat/sync` | Non-streaming chat fallback |
 
-See: `hackathons/agents/world-monitor-agent/src/tools/apify_tools.py`
+### Voice & Audio
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/briefing/voice` | Generate voice briefing (10 languages) |
+| POST | `/api/tts` | Raw text-to-speech |
 
----
-
-### EXA
-
-EXA provides semantic web search and news search used alongside Apify for deeper research queries. Used in `deep_web_research` and `search_financial_data` tools when Apify scraping isn't sufficient.
-
-See: `hackathons/agents/world-monitor-agent/src/tools/exa_tools.py`
-
----
-
-### Agent Staffing Agency
-
-The `consult_staffing_agency` tool routes queries to the Agent Staffing Agency — a service that benchmarks 55+ marketplace sellers and forwards queries to the best available one. Used for crypto, DeFi, marketing, and social analysis queries.
-
-- Free `/try` endpoint (1 request/hour), paid `/ask` endpoint
-- Integrated as a Strands tool in `src/strands_agent.py`
-
-See: `hackathons/agents/world-monitor-agent/src/tools/staffing_agency.py`
-
----
-
-### ZeroClick
-
-ZeroClick contextual ads are injected into the chatbot response flow on the frontend.
-
-- After every AI response, the chatbot maps the semantic domain (finance, conflict, crypto, travel, etc.) to one of 14 categories and fetches contextual product offers via the ZeroClick API
-- Offers are displayed as sponsored cards beneath the AI response
-- Click signals and impressions are tracked and sent back to ZeroClick
-
-See: `worldmonitor/src/components/ChatbotPanel.ts` — `appendOffers()`, `SEMANTIC_MAP`
+### Portfolio & Intelligence
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/portfolio-advisor` | AI-driven news impact on portfolio |
+| GET | `/api/catchup` | "What Did I Miss" personalized briefing |
+| GET | `/api/breaking` | Recent breaking news |
+| POST | `/api/breaking` | Push breaking news alert |
+| GET | `/api/trending` | Trending queries |
+| GET | `/api/reports` | User's saved reports |
+| GET | `/health` | Service health check |
 
 ---
 
-## Stack
+## Quick Start
 
-| Layer | Technology |
-|-------|-----------|
-| Agent framework | AWS Strands SDK |
-| LLM | Claude Sonnet 4.6 (Anthropic) |
-| Payments | Nevermined x402 |
-| Deployment | Trinity (TrinityOS) |
-| Web data | Apify Actors |
-| Search | EXA semantic search |
-| Dashboard | World Monitor (Vite + TypeScript) |
-| Frontend hosting | Vercel |
-| Ads | ZeroClick |
+### Prerequisites
+- Node.js 20+
+- npm
 
----
-
-## Repository Structure
-
-```
-intel-marketplace/
-├── hackathons/agents/world-monitor-agent/   # Backend intelligence agent
-│   ├── src/
-│   │   ├── web.py                           # FastAPI server (seller endpoint)
-│   │   ├── strands_agent.py                 # Strands agent + tools
-│   │   └── tools/
-│   │       ├── apify_tools.py               # Apify news/social/finance scrapers
-│   │       ├── exa_tools.py                 # EXA semantic search
-│   │       ├── nvm_discovery.py             # Nevermined marketplace buyer
-│   │       ├── staffing_agency.py           # Agent Staffing Agency integration
-│   │       └── zeroclick.py                 # ZeroClick ad integration
-│   ├── scripts/
-│   │   └── auto_trade.py                    # Autonomous marketplace buyer
-│   └── CLAUDE.md                            # Trinity agent instructions
-├── worldmonitor/                            # Frontend dashboard
-│   ├── src/components/ChatbotPanel.ts       # AI chatbot with ZeroClick ads
-│   └── api/
-│       ├── intel-chat.js                    # Proxy to Trinity agent (SSE streaming)
-│       └── mcp/
-│           ├── trinity.js                   # Trinity MCP proxy
-│           └── apify.js                     # Apify MCP proxy
-├── nevermined-purchaser/                    # Test buyer client
-│   └── pay_and_call.py                      # CLI to purchase from any agent
-└── template.yaml                            # Trinity deployment config
-```
-
----
-
-## Running Locally
+### 1. Clone & Install
 
 ```bash
-# Backend agent
-cd hackathons/agents/world-monitor-agent
-cp .env.example .env   # fill in NVM_API_KEY, APIFY_API_KEY, EXA_API_KEY, ANTHROPIC_API_KEY
-poetry install
-poetry run python -m src.web
-# → http://localhost:3000
+git clone https://github.com/Kush614/Pulse.git
+cd Pulse
 
-# Test a purchase
-cd nevermined-purchaser
-python3 pay_and_call.py call \
-  --url https://us14.abilityai.dev/api/paid/intel-marketplace-2/chat \
-  --message "What are the latest AI trends?" \
-  --plan-id 3752853475618467090095078814547168619421798970303024103447800626832273878283 \
-  --agent-id 63046025305469270040963931107827858539408991598001521799587728626823677599318
+# Install backend
+cd server
+npm install
 
-# Run auto-trade (buy from other agents)
-cd hackathons/agents/world-monitor-agent
-python3 scripts/auto_trade.py --max-sellers 5
+# Install frontend
+cd ../worldmonitor
+npm install
+```
+
+### 2. Configure Environment
+
+```bash
+# Copy example env
+cp server/.env.example server/.env
+```
+
+Edit `server/.env` with your keys:
+
+```env
+# InsForge (required — get from https://insforge.com)
+INSFORGE_URL=https://your-project.us-east.insforge.app
+INSFORGE_API_KEY=your_anon_jwt
+INSFORGE_SERVICE_KEY=ik_your_service_key
+
+# ElevenLabs (required for voice features)
+ELEVENLABS_API_KEY=sk_your_key
+ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
+
+# Optional
+APIFY_API_KEY=your_key
+EXA_API_KEY=your_key
+
+# Server
+PORT=3001
+```
+
+### 3. Create Database Tables
+
+The backend uses InsForge Postgres. Create these tables via the InsForge dashboard or API:
+
+- `articles` �� title, url, source, snippet, published_at, category, metadata
+- `bias_scores` — article_id, political_lean, emotional, opinion_ratio, sensationalism, source_credibility, model_used, reasoning
+- `reports` — user_id, query, synthesis, sources, consensus, bias_summary, audio_url
+- `user_preferences` — user_id, topics, language, voice_enabled, briefing_style, last_seen_at
+- `query_history` — user_id, query, report_id
+- `breaking_news` — article_id, headline, urgency, regions
+
+### 4. Run
+
+```bash
+# Terminal 1: Backend
+cd server
+npm run dev
+
+# Terminal 2: Frontend
+cd worldmonitor
+npm run dev
+```
+
+Open **http://localhost:3000** — the full dashboard with all Nova panels loads automatically.
+
+---
+
+## Dashboard Panels
+
+### Nova AI Panels (New)
+- **Nova Chat** — Ask anything, get AI-analyzed answers with cited real-time sources
+- **Bias Radar** — Enter a topic, see bias analysis across all sources with political spectrum visualization
+- **Multi-AI Consensus** — Three AI perspectives independently analyze the same story
+- **Debate Mode** — Structured pro/con arguments with audio playback
+- **Voice Briefing** — Audio news briefings in English, Spanish, French, German, Japanese, Korean, Chinese, Hindi, Arabic, Portuguese
+- **What Did I Miss** — Catch up on news since your last visit
+- **Breaking News** — Live feed with urgency-based color coding and browser notifications
+- **AI Portfolio Advisor** — Edit your portfolio, get per-asset impact predictions based on latest news
+
+### World Monitor Panels (Existing 36+ feeds)
+- Geopolitical conflicts (ACLED, UCDP, GDELT)
+- Financial markets (Yahoo Finance, CoinGecko, Polymarket)
+- Aviation tracking (OpenSky, FAA)
+- Maritime intelligence (USNI Fleet Tracker)
+- Cyber threats (Feodo, URLhaus, AlienVault OTX, AbuseIPDB)
+- Natural disasters (USGS earthquakes, NASA FIRMS fires, NOAA weather)
+- Humanitarian data (UNHCR, World Bank)
+- Tech news (Hacker News, ArXiv)
+- And more...
+
+### Panel Controls
+- **Maximize** — Click the expand icon on any panel header to go fullscreen (Escape to exit)
+- **Resize** — Drag bottom/right edges to resize
+- **Drag & Drop** — Reorder panels by dragging headers
+- **Scroll** — All panel content is scrollable
+
+---
+
+## Hackathon Tracks
+
+| Track | Prize | How Pulse Qualifies |
+|-------|-------|-------------------|
+| **Going Merry AI News** | $1,000 | Full AI news platform with bias detection, consensus, debate, and voice briefings |
+| **InsForge** | $500 | Uses InsForge DB (6 tables), Auth (JWT), AI Gateway (GPT-4o-mini), and Storage |
+| **ElevenLabs** | $2,000 value | Voice briefings in 10 languages, dual-voice debate audio, breaking news alerts |
+| **General** | $700 | Novel portfolio advisor + world intelligence dashboard |
+
+---
+
+## Project Structure
+
+```
+Pulse/
+├── server/                    # Nova News Backend
+│   ├── src/
+│   │   ├── index.ts          # Express server, 18 API routes
+│   │   ├── insforge.ts       # InsForge REST client (DB, Auth, AI, Storage)
+│   │   ├── scrapers.ts       # Google News RSS, GDELT, HN, Reddit, CoinGecko
+│   │   ├── bias.ts           # Bias Radar, Multi-Model Consensus, Debate Mode
+│   │   ├── elevenlabs.ts     # TTS, voice briefings, debate audio
+│   │   └── types.ts          # TypeScript interfaces
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── worldmonitor/              # Frontend Dashboard
+│   ├── src/
+│   │   ├── app/
+│   │   │   └── panel-layout.ts    # Panel registration & grid layout
+│   │   ├── components/
+│   │   │   ├── Panel.ts           # Base panel class (maximize, resize, drag)
+│   │   │   ├── ChatbotPanel.ts    # Nova AI Chat (streaming SSE)
+│   │   │   ├── BiasRadarPanel.ts  # Bias analysis visualization
+│   │   │   ├── ConsensusPanel.ts  # Multi-AI consensus view
+│   │   │   ├── DebateModePanel.ts # Pro/con debate with audio
+│   │   │   ├── VoiceBriefingPanel.ts    # Multilingual voice briefings
+│   │   │   ├── CatchUpPanel.ts          # "What Did I Miss"
+│   │   │   ├── BreakingNewsRealtimePanel.ts  # Live breaking feed
+│   │   │   └── PortfolioAdvisorPanel.ts      # AI portfolio impact
+│   │   └── styles/
+│   │       └── main.css           # Panel maximize CSS
+│   ├── vite.config.ts             # Dev proxy /nova -> :3001
+│   └── package.json
+│
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
 ---
 
-## Licensing & Attribution
+## License
 
-The code in this repository is split across two licenses:
-
-| Path | License | Notes |
-|------|---------|-------|
-| Everything except `worldmonitor/` | MIT | Copyright 2026 maxxie114 |
-| `worldmonitor/` | **AGPL-3.0-only** | See `worldmonitor/LICENSE` |
-
-The `worldmonitor/` directory is a modified fork of
-[World Monitor](https://github.com/koala73/worldmonitor) by Elie Habib,
-licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only).
-Files added or modified within that directory (including `ChatbotPanel.ts`,
-`ZeroClickOffersPanel.ts`, and the Apify/ZeroClick service integrations) are
-also subject to the AGPL-3.0-only license as derivative works.
-
----
-
-## Team
-
-Built at the Nevermined AI Agent Hackathon 2026.
-
-- Peixi Xie
-- Kush Ise
-- Dhrumil Shah
+This project builds upon [World Monitor](https://github.com/maxxie114/intel-marketplace) (AGPL-3.0 for the worldmonitor/ directory). The Nova server and new panels are original work created for the Fontaine Founders Hackathon.
