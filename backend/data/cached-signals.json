@@ -1,0 +1,50 @@
+[
+  {
+    "id": "sig-fed-uup",
+    "action": "LONG",
+    "ticker": "UUP",
+    "name": "Invesco DB US Dollar Index Bullish Fund",
+    "rationale": "A slower Fed easing path supports dollar strength while rate-sensitive assets remain under pressure.",
+    "expectedMove": "+6.5%",
+    "timeframe": "30-60d",
+    "confidence": 82,
+    "triggeringStory": "Fed signals a longer pause as inflation cools unevenly across services",
+    "historicalMatch": "Delayed rate-cut cycles have favored the dollar versus risk assets over the next one to two months."
+  },
+  {
+    "id": "sig-fed-iyr",
+    "action": "SHORT",
+    "ticker": "IYR",
+    "name": "iShares US Real Estate ETF",
+    "rationale": "Higher-for-longer policy tends to compress real estate multiples and financing conditions.",
+    "expectedMove": "-8.2%",
+    "timeframe": "60-90d",
+    "confidence": 78,
+    "triggeringStory": "Fed signals a longer pause as inflation cools unevenly across services",
+    "historicalMatch": "Fed pause regimes with sticky services inflation have preceded REIT pullbacks in prior tightening plateaus."
+  },
+  {
+    "id": "sig-rareearth-mp",
+    "action": "LONG",
+    "ticker": "MP",
+    "name": "MP Materials",
+    "rationale": "Export controls on Chinese rare earth processing raise the strategic value of domestic supply alternatives.",
+    "expectedMove": "+14.0%",
+    "timeframe": "45-90d",
+    "confidence": 85,
+    "triggeringStory": "China expands export controls on rare earth processing technology",
+    "historicalMatch": "Supply restrictions in strategic minerals have previously driven sharp re-rating in non-China producers."
+  },
+  {
+    "id": "sig-redsea-xle",
+    "action": "LONG",
+    "ticker": "XLE",
+    "name": "Energy Select Sector SPDR Fund",
+    "rationale": "Shipping disruptions through key maritime routes tend to boost crude risk premia and support energy equities.",
+    "expectedMove": "+7.5%",
+    "timeframe": "15-45d",
+    "confidence": 74,
+    "triggeringStory": "Red Sea disruptions lift freight stress and reignite energy supply concerns",
+    "historicalMatch": "Chokepoint stress episodes have repeatedly widened energy margins over the following month."
+  }
+]
