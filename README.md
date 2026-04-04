@@ -64,6 +64,7 @@ Copy `.env.example` to `.env` and set the keys you have.
 
 Important variables:
 
+- `PULSE_STRICT_LIVE_MODE`
 - `MINIMAX_API_KEY`
 - `CLAUDE_API_KEY`
 - `ELEVENLABS_API_KEY`
@@ -94,3 +95,19 @@ npm run build
 - `POST /api/portfolio` is kept as a compatibility alias for `POST /api/portfolio-impact`.
 - If live AI providers fail or are not configured, the backend falls back to committed demo data in `backend/data/`.
 - The RSS feed pipeline is real and currently ingests from the generated WorldMonitor-derived source catalog.
+
+## Live Mode
+
+If you want the backend to fail instead of quietly serving cached or demo responses, set:
+
+```bash
+PULSE_STRICT_LIVE_MODE=true
+```
+
+With strict live mode enabled:
+
+- `/api/feed` requires a successful live RSS refresh.
+- `/api/signals` requires live event-derived signal generation.
+- `/api/briefing` requires live event data and successful ElevenLabs audio generation.
+
+RSS feeds themselves do not require an API key. The current backend also does not use a paid market-data API yet, so no Polygon or Alpha Vantage key is required for the shipped Person A scope.

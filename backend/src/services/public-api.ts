@@ -12,6 +12,7 @@ import { RuntimeStoreRepository } from '../lib/runtime-store.js';
 import { generateBriefing } from './briefing.js';
 import { refreshFeedPipeline } from './feed-pipeline.js';
 import { loadFallbackBriefing, loadFallbackEvents, loadFallbackSignals } from './fallback-data.js';
+import { assertStrictLive } from './live-mode.js';
 import { calculatePortfolioImpact } from './portfolio-impact.js';
 import { generateSignals } from './signals.js';
 
@@ -40,6 +41,10 @@ async function remember(entry: Omit<ProcessMemoryEntry, 'id' | 'recordedAt'>): P
 export async function getFeed(): Promise<FeedEvent[]> {
   const store = await storeRepo.read();
   const refreshed = await refreshFeedPipeline(false);
+  assertStrictLive(
+    refreshed.events.length > 0 && !refreshed.stale,
+    'Live feed refresh returned no events. Strict live mode is enabled, so cached or demo feed data cannot be served.',
+  );
   const events = refreshed.events.length > 0
     ? refreshed.events
     : store.events.length > 0
@@ -57,6 +62,10 @@ export async function getFeed(): Promise<FeedEvent[]> {
 export async function getSignals(): Promise<TradeSignal[]> {
   const store = await storeRepo.read();
   const signals = await generateSignals(false);
+  assertStrictLive(
+    signals.length > 0,
+    'Live signal generation returned no signals. Strict live mode is enabled, so cached or demo signals cannot be served.',
+  );
   await remember({
     scope: 'signals',
     title: 'Signals requested',
@@ -68,6 +77,10 @@ export async function getSignals(): Promise<TradeSignal[]> {
 
 export async function getBriefing(): Promise<BriefingResponse | null> {
   const briefing = await generateBriefing(false);
+  assertStrictLive(
+    briefing,
+    'Live briefing generation failed. Strict live mode is enabled, so cached or demo briefing data cannot be served.',
+  );
   if (!briefing) return null;
   await remember({
     scope: 'briefing',

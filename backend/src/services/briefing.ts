@@ -6,6 +6,7 @@ import { RuntimeStoreRepository } from '../lib/runtime-store.js';
 import { loadFallbackBriefing } from './fallback-data.js';
 import { refreshFeedPipeline } from './feed-pipeline.js';
 import { syncBriefingToInsforge } from './insforge-sync.js';
+import { assertStrictLive } from './live-mode.js';
 import { generateSignals } from './signals.js';
 
 const storeRepo = new RuntimeStoreRepository();
@@ -83,11 +84,19 @@ export async function generateBriefing(force = false): Promise<BriefingResponse 
     generateSignals(false),
   ]);
   const activeEvents = events.length > 0 ? events : store.events;
+  assertStrictLive(
+    activeEvents.length > 0,
+    'Cannot generate a live briefing without active live events. Strict live mode is enabled.',
+  );
   if (activeEvents.length === 0) return loadFallbackBriefing();
 
   const transcript = buildBriefingScript(activeEvents, signals);
   const generatedAt = new Date().toISOString();
   const audioUrl = await synthesizeWithElevenLabs(transcript);
+  assertStrictLive(
+    audioUrl,
+    'ElevenLabs audio generation failed or is not configured. Strict live mode is enabled, so fallback audio cannot be served.',
+  );
   const fallback = await loadFallbackBriefing();
 
   const briefing: BriefingResponse = {

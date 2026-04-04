@@ -6,6 +6,7 @@ import { generateClaudeJson } from './claude.js';
 import { refreshFeedPipeline } from './feed-pipeline.js';
 import { loadFallbackSignals } from './fallback-data.js';
 import { syncSignalsToInsforge } from './insforge-sync.js';
+import { assertStrictLive } from './live-mode.js';
 
 const storeRepo = new RuntimeStoreRepository();
 
@@ -113,6 +114,10 @@ export async function generateSignals(force = false): Promise<TradeSignal[]> {
 
   const { events } = await refreshFeedPipeline(false);
   const activeEvents = events.length > 0 ? events : store.events;
+  assertStrictLive(
+    activeEvents.length > 0,
+    'Cannot generate live signals without active live events. Strict live mode is enabled.',
+  );
   if (activeEvents.length === 0) return loadFallbackSignals();
 
   const patterns = await readJsonFile<PatternRecord[]>(patternsPath, []);
@@ -141,5 +146,9 @@ export async function generateSignals(force = false): Promise<TradeSignal[]> {
   await storeRepo.write(nextStore);
   await syncSignalsToInsforge(signals);
 
+  assertStrictLive(
+    signals.length > 0,
+    'Signal generation produced no live signals. Strict live mode is enabled.',
+  );
   return signals.length > 0 ? signals : await loadFallbackSignals();
 }
