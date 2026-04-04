@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "PULSE",
+    "slug": "pulse-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
