@@ -6,7 +6,7 @@ function getClient() {
   if (!env.INSFORGE_URL || !env.INSFORGE_API_KEY) return null;
   return createClient({
     baseUrl: env.INSFORGE_URL,
-    anonKey: env.INSFORGE_API_KEY,
+    anonKey: env.INSFORGE_ANON_KEY ?? env.INSFORGE_API_KEY,
     edgeFunctionToken: env.INSFORGE_API_KEY,
     isServerMode: true,
   });

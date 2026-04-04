@@ -77,6 +77,9 @@ describe.sequential('backend end-to-end flow', () => {
     vi.doMock('../src/services/minimax.js', () => ({
       analyzeClusterWithMinimax: async () => null,
     }));
+    vi.doMock('../src/services/signal-llm.js', () => ({
+      generateSignalJson: async () => null,
+    }));
     const module = await import('../src/app.js');
     app = module.createApp();
   });

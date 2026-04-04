@@ -18,14 +18,16 @@ const envSchema = z.object({
   PULSE_STRICT_LIVE_MODE: booleanFromEnv.default(false),
   MINIMAX_API_KEY: z.string().optional(),
   MINIMAX_BASE_URL: z.string().url().optional(),
-  CLAUDE_API_KEY: z.string().optional(),
-  CLAUDE_BASE_URL: z.string().url().optional(),
   ELEVENLABS_API_KEY: z.string().optional(),
   ELEVENLABS_VOICE_ID: z.string().optional(),
   MEMORI_API_KEY: z.string().optional(),
-  MEMORI_SPACE_ID: z.string().optional(),
   INSFORGE_URL: z.string().url().optional(),
+  INSFORGE_ANON_KEY: z.string().optional(),
   INSFORGE_API_KEY: z.string().optional(),
+  APIFY_API_KEY: z.string().optional(),
 });
 
-export const env = envSchema.parse(process.env);
+export const env = envSchema.parse({
+  ...process.env,
+  INSFORGE_URL: process.env.INSFORGE_URL || process.env.INSFORGE_BASE_URL,
+});

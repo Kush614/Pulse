@@ -1,11 +1,11 @@
-import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { Memori } from '@memorilabs/memori';
 import { env } from '../env.js';
 
-type SupportedClient = OpenAI | Anthropic;
+type SupportedClient = OpenAI;
 
 export function attachMemori<T extends SupportedClient>(client: T, processId: string, entityId = 'pulse-system'): T {
+  if (process.env.VITEST) return client;
   if (!env.MEMORI_API_KEY) return client;
   const memori = new Memori().attribution(entityId, processId);
   memori.llm.register(client);
@@ -13,6 +13,7 @@ export function attachMemori<T extends SupportedClient>(client: T, processId: st
 }
 
 export async function recallMemoriContext(query: string, processId: string, entityId = 'pulse-system'): Promise<string> {
+  if (process.env.VITEST) return '';
   if (!env.MEMORI_API_KEY || !query.trim()) return '';
 
   try {

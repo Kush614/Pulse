@@ -2,11 +2,11 @@ import { join } from 'node:path';
 import type { FeedEvent, TradeSignal } from '../contracts.js';
 import { readJsonFile } from '../lib/json-file.js';
 import { RuntimeStoreRepository } from '../lib/runtime-store.js';
-import { generateClaudeJson } from './claude.js';
 import { refreshFeedPipeline } from './feed-pipeline.js';
 import { loadFallbackSignals } from './fallback-data.js';
 import { syncSignalsToInsforge } from './insforge-sync.js';
 import { assertStrictLive } from './live-mode.js';
+import { generateSignalJson } from './signal-llm.js';
 
 const storeRepo = new RuntimeStoreRepository();
 
@@ -74,8 +74,8 @@ function deriveSignalHeuristically(event: FeedEvent, pattern?: PatternRecord): T
   };
 }
 
-async function refineSignalWithClaude(event: FeedEvent, baseSignal: TradeSignal, pattern?: PatternRecord): Promise<TradeSignal | null> {
-  const response = await generateClaudeJson<TradeSignal>(
+async function refineSignalWithLlm(event: FeedEvent, baseSignal: TradeSignal, pattern?: PatternRecord): Promise<TradeSignal | null> {
+  const response = await generateSignalJson<TradeSignal>(
     [
       'Return JSON with keys: action, ticker, name, rationale, expectedMove, timeframe, confidence, triggeringStory, historicalMatch.',
       `Event headline: ${event.headline}`,
@@ -128,17 +128,18 @@ export async function generateSignals(force = false): Promise<TradeSignal[]> {
     const event = topEvents[index];
     const pattern = firstPatternMatch(event, patterns);
     const heuristic = deriveSignalHeuristically(event, pattern);
-    const refined = index < 3 ? await refineSignalWithClaude(event, heuristic, pattern) : null;
+    const refined = index < 3 ? await refineSignalWithLlm(event, heuristic, pattern) : null;
     const signal = refined ?? heuristic;
     if (signals.some((existing) => existing.ticker === signal.ticker && existing.action === signal.action)) continue;
     signals.push(signal);
   }
 
+  const latestStore = await storeRepo.read();
   const nextStore = {
-    ...store,
+    ...latestStore,
     signals,
     meta: {
-      ...store.meta,
+      ...latestStore.meta,
       lastSignalsAt: new Date().toISOString(),
     },
   };

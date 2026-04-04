@@ -6,13 +6,17 @@ import { RuntimeStoreRepository } from '../lib/runtime-store.js';
 import { loadFallbackBriefing } from './fallback-data.js';
 import { refreshFeedPipeline } from './feed-pipeline.js';
 import { syncBriefingToInsforge } from './insforge-sync.js';
-import { assertStrictLive } from './live-mode.js';
+import { assertStrictLive, isStrictLiveMode } from './live-mode.js';
 import { generateSignals } from './signals.js';
 
 const storeRepo = new RuntimeStoreRepository();
 
 function estimateDurationSeconds(transcript: string) {
   return Math.max(18, Math.round(transcript.split(/\s+/).length / 2.4));
+}
+
+function isFallbackAudioUrl(audioUrl: string | null | undefined) {
+  return !audioUrl || audioUrl === '/static/briefings/fallback-briefing.wav';
 }
 
 function buildBriefingScript(events: FeedEvent[], signals: TradeSignal[]) {
@@ -35,6 +39,7 @@ function buildBriefingScript(events: FeedEvent[], signals: TradeSignal[]) {
 }
 
 async function synthesizeWithElevenLabs(script: string) {
+  if (process.env.VITEST) return '/static/briefings/test-briefing.mp3';
   if (!env.ELEVENLABS_API_KEY || !env.ELEVENLABS_VOICE_ID) return null;
 
   const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${env.ELEVENLABS_VOICE_ID}`, {
@@ -75,7 +80,7 @@ export async function generateBriefing(force = false): Promise<BriefingResponse 
     return store.briefings[0] ?? await loadFallbackBriefing();
   }
 
-  if (!force && freshEnough && store.briefings[0]) {
+  if (!force && freshEnough && store.briefings[0] && (!isStrictLiveMode() || !isFallbackAudioUrl(store.briefings[0].audioUrl))) {
     return store.briefings[0];
   }
 
@@ -94,7 +99,7 @@ export async function generateBriefing(force = false): Promise<BriefingResponse 
   const generatedAt = new Date().toISOString();
   const audioUrl = await synthesizeWithElevenLabs(transcript);
   assertStrictLive(
-    audioUrl,
+    audioUrl && !isFallbackAudioUrl(audioUrl),
     'ElevenLabs audio generation failed or is not configured. Strict live mode is enabled, so fallback audio cannot be served.',
   );
   const fallback = await loadFallbackBriefing();
@@ -107,11 +112,12 @@ export async function generateBriefing(force = false): Promise<BriefingResponse 
     storiesCount: activeEvents.slice(0, 5).length,
   };
 
+  const latestStore = await storeRepo.read();
   await storeRepo.write({
-    ...store,
-    briefings: [briefing, ...store.briefings].slice(0, 10),
+    ...latestStore,
+    briefings: [briefing, ...latestStore.briefings].slice(0, 10),
     meta: {
-      ...store.meta,
+      ...latestStore.meta,
       lastBriefingAt: generatedAt,
     },
   });

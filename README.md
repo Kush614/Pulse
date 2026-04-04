@@ -7,7 +7,7 @@ Person A backend implementation for the PULSE hackathon build.
 - `GET /api/feed`
   Live RSS ingest, event clustering, objectivity scoring, bias distribution, viewpoint synthesis, sector impact, related tickers.
 - `GET /api/signals`
-  Trade signals generated from active events plus historical pattern matches, with Claude refinement when configured.
+  Trade signals generated from active events plus historical pattern matches, with MiniMax refinement when configured.
 - `POST /api/portfolio-impact`
   Portfolio exposure scoring using direct ticker matches, sector matches, and active signals.
 - `GET /api/briefing`
@@ -43,13 +43,13 @@ PULSE uses two memory layers:
 - Local process memory in `runtime-store.json`
   This stores recent articles, events, signals, briefings, and execution notes for the app itself.
 - Memori, when `MEMORI_API_KEY` is configured
-  The MiniMax and Claude clients are wrapped with Memori attribution so feed-analysis and signal-generation prompts can be remembered and recalled across runs.
+  The MiniMax clients are wrapped with Memori attribution so feed-analysis and signal-generation prompts can be remembered and recalled across runs.
 
 Memori is optional at runtime. Without `MEMORI_API_KEY`, the backend still works and falls back to local process memory only.
 
 ## InsForge integration
 
-The backend runs locally by default with a file-backed store. If `INSFORGE_URL` and `INSFORGE_API_KEY` are configured, the backend also mirrors:
+The backend runs locally by default with a file-backed store. If `INSFORGE_BASE_URL` and `INSFORGE_API_KEY` are configured, the backend also mirrors:
 
 - `events`
 - `signals`
@@ -66,12 +66,14 @@ Important variables:
 
 - `PULSE_STRICT_LIVE_MODE`
 - `MINIMAX_API_KEY`
-- `CLAUDE_API_KEY`
+- `MINIMAX_BASE_URL`
 - `ELEVENLABS_API_KEY`
 - `ELEVENLABS_VOICE_ID`
 - `MEMORI_API_KEY`
-- `INSFORGE_URL`
+- `INSFORGE_BASE_URL`
+- `INSFORGE_ANON_KEY`
 - `INSFORGE_API_KEY`
+- `APIFY_API_KEY`
 
 ## Commands
 
