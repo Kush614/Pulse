@@ -1,343 +1,290 @@
-# Pulse
+# Pulse — AI-Powered News Intelligence Platform
 
-Real-time news intelligence across web and mobile, with live feed clustering, bias-aware story framing, AI briefings, portfolio context, and a world-monitor dashboard. Entire backend running on Insforge database, auth, AI gateway and storage.
+**Real-time news intelligence with bias detection, multi-perspective consensus, voice briefings, and AI-driven portfolio analysis.**
 
-Built for the Fontaine Founders Hackathon, April 2026, San Francisco.
+Built with **InsForge** (Backend-as-a-Service + AI Gateway), **ElevenLabs** (Text-to-Speech), and **36 free public APIs** powering a live geopolitical dashboard.
 
-## Overview
+> Built for the Fontaine Founders Hackathon (April 2026, San Francisco)
 
-Pulse combines three product surfaces in one repo:
+---
 
-- `backend/`: the live intelligence API, feed pipeline, briefing engine, story analysis, portfolio impact, and Pulse AI session/chat services.
-- `worldmonitor/`: the browser dashboard with large-scale geopolitical, market, infrastructure, and public-data monitoring.
-- `mobile/`: the Expo mobile client for real-time briefings, personalized dashboards, live feed drilldown, and source-lens analysis.
+## What It Does
 
-This README keeps the original hackathon pitch intact while also documenting what is actually implemented in this branch.
+Pulse is a full-stack intelligence platform that aggregates real-time news from multiple free sources, analyzes bias and credibility using AI, and presents actionable insights through an interactive dashboard.
 
-## What Pulse Does
+### Core Features
 
-### Hackathon Product Vision
+| Feature | Description |
+|---------|-------------|
+| **Bias Radar** | Analyzes political lean, emotional tone, sensationalism, and credibility across multiple news sources for any topic |
+| **Multi-AI Consensus** | Three AI perspectives (Factual Analyst, Critical Skeptic, Context Expert) analyze the same story independently, then synthesize a balanced view |
+| **Debate Mode** | Generates structured pro/con arguments with cited sources and dual-voice audio playback |
+| **Voice Briefing** | ElevenLabs-powered audio briefings in 10 languages with full transcript and source list |
+| **AI Portfolio Advisor** | Fetches latest news and predicts impact on your portfolio — per-asset direction, confidence, and actionable advice |
+| **What Did I Miss** | Personalized catch-up briefings based on your topics since your last visit |
+| **Breaking News** | Real-time feed with urgency scoring and browser notifications |
+| **Nova Chat** | Streaming AI news analyst with real-time source context — ask anything about current events |
+| **World Monitor Dashboard** | Live map with 36+ data feeds: conflicts, markets, crypto, aviation, maritime, cyber threats, earthquakes, weather, and more |
 
-- Bias Radar: compare how the same topic is framed across outlets, with objectivity and bias distribution.
-- Multi-perspective consensus: synthesize multiple analytical viewpoints into a balanced read.
-- Debate mode: pro and con framing for contentious stories, with optional audio.
-- Voice briefing: spoken daily or intraday summaries powered by ElevenLabs.
-- Portfolio-aware intelligence: connect active stories to tickers, sectors, and likely market impact.
-- Breaking and trending monitoring: continuously surface high-urgency developments.
-- Nova or Pulse AI chat: ask follow-up questions against live story context.
-- World Monitor dashboard: 36+ public feeds spanning geopolitics, markets, aviation, maritime, cyber, weather, and disasters.
-
-### What Is Implemented In This Repo
-
-- Live feed ingest and clustering through `GET /api/feed`
-- Trade signal generation through `GET /api/signals`
-- Focus intelligence for sector, ticker, topic, and horizon setup through `GET /api/focus`
-- Portfolio dashboard generation through `POST /api/dashboard`
-- Personalized briefing generation and briefing chat through `GET /api/briefing` and `POST /api/briefing/chat`
-- Story detail pages, framing analysis, and story chat through `GET /api/stories/:storyId` and `POST /api/stories/:storyId/chat`
-- Pulse AI session and follow-up chat through `GET|POST /api/pulse-ai` and `POST /api/pulse-ai/chat`
-- Portfolio impact scoring through `POST /api/portfolio-impact`
-- Expo mobile app with live feed, live briefing, dashboard, story detail, and source lens
-
-## Realtime Mobile App
-
-The mobile app lives in `mobile/` and runs on Expo for iOS, Android, and web.
-
-### Current Mobile Experience
-
-- Splash and onboarding flow
-- Focus setup backed by live focus intelligence
-- Personalized briefing screen with transcript, audio entry point, and follow-up chat
-- Personalized dashboard with holdings, signal strength, focus sectors, and trending stories
-- Live feed view filtered by sectors, tickers, and themes
-- Story detail screen with framing distribution, integrity score, brief bullets, related tickers, and chat
-- Source Lens screen for left, center, and right framing comparison
-
-### Mobile Realtime Data Path
-
-- Focus setup calls `GET /api/focus`
-- Feed calls `GET /api/feed`
-- Dashboard calls `POST /api/dashboard`
-- Briefing calls `GET /api/briefing`
-- Briefing follow-up chat calls `POST /api/briefing/chat`
-- Story detail calls `GET /api/stories/:storyId`
-- Story follow-up chat calls `POST /api/stories/:storyId/chat`
-
-### Mobile Fallback Behavior
-
-If live data or AI providers are unavailable, the mobile app falls back to committed local demo data so the product remains demoable during hackathon judging.
+---
 
 ## Architecture
 
-```text
-                                 +-----------------------+
-                                 |   Mobile App (Expo)   |
-                                 |  iOS / Android / Web  |
-                                 +-----------+-----------+
-                                             |
-                                             | live JSON APIs
-                                             |
-                   +-------------------------v-------------------------+
-                   |            Pulse Backend (Express + TS)          |
-                   |                  localhost:8787                  |
-                   +--------------------+---------------+-------------+
-                                        |               |
-                           feed ingest  |               | AI / voice / sync
-                                        |               |
-        +-------------------------------v--+      +----v--------------------+
-        | RSS + public source catalogs      |      | Optional integrations   |
-        | World Monitor-derived feed data   |      | MiniMax / OpenAI        |
-        | Live news and market references   |      | ElevenLabs              |
-        +-----------------------------------+      | Memori                 |
-                                                   | InsForge mirror        |
-                                                   | Alpha Vantage          |
-                                                   +------------------------+
-
-                                 +-----------------------+
-                                 |  Web Dashboard (Vite) |
-                                 |  worldmonitor/:3000   |
-                                 +-----------------------+
 ```
+                        ┌──────────────────────────────────────┐
+                        │          Frontend (Vite + TS)         │
+                        │     World Monitor Dashboard + Nova    │
+                        │        localhost:3000                 │
+                        └──────────┬───────────────────────────┘
+                                   │ /nova proxy
+                        ┌──────────▼───────────────────────────┐
+                        │       Nova Backend (Express + TS)     │
+                        │         localhost:3001                │
+                        ├───────────────────────────────────────┤
+                        │                                       │
+  ┌─────────────────┐   │   ┌─────────────┐  ┌──────────────┐  │
+  │  Google News RSS │◄──┤   │  InsForge    │  │  ElevenLabs  │  │
+  │  GDELT API      │   │   │  AI Gateway  │  │  TTS API     │  │
+  │  Hacker News    │   │   │  (GPT-4o-m)  │  │  (10 langs)  │  │
+  │  Reddit JSON    │   │   └──────┬───────┘  └──────────────┘  │
+  │  CoinGecko      │   │          │                             │
+  └─────────────────┘   │   ┌──────▼───────┐                    │
+                        │   │  InsForge DB  │                    │
+  36 Free Public APIs   │   │  (Postgres)   │                    │
+  (Yahoo, USGS, NOAA,  │   │  Auth, Storage│                    │
+   OpenSky, ACLED...)   │   └──────────────┘                    │
+                        └───────────────────────────────────────┘
+```
+
+---
 
 ## Tech Stack
 
-### Backend
+### Backend (`/server`)
+- **Runtime:** Node.js + TypeScript (tsx)
+- **Framework:** Express with CORS, SSE streaming
+- **AI Gateway:** InsForge AI Gateway → OpenAI GPT-4o-mini (routed via OpenRouter to 100+ models)
+- **Database:** InsForge Postgres (articles, bias scores, reports, user preferences, query history, breaking news)
+- **Authentication:** InsForge Auth (signup/login with JWT tokens)
+- **TTS:** ElevenLabs API with multilingual v2 model, dual-voice debate audio
+- **News Sources:** Google News RSS, GDELT, Hacker News Algolia, Reddit JSON API, CoinGecko
 
-- Node.js + TypeScript
-- Express
-- Local runtime store in `backend/data/runtime-store.json`
-- Optional InsForge mirroring through `@insforge/sdk`
-- Optional MiniMax, OpenAI, ElevenLabs, Memori, and Alpha Vantage integrations
+### Frontend (`/worldmonitor`)
+- **Build:** Vite + TypeScript (vanilla, no framework)
+- **UI:** Panel-based dashboard with drag/drop, resize, maximize/fullscreen
+- **Data:** 36+ free APIs for live geopolitical intelligence (conflicts, markets, aviation, maritime, cyber, weather, seismic)
+- **Proxy:** Vite dev proxy `/nova` → `localhost:3001`
 
-### Web Dashboard
+### Services Used
+| Service | Purpose | Tier |
+|---------|---------|------|
+| **InsForge** | Database, Auth, AI Gateway, Storage | Free |
+| **ElevenLabs** | Text-to-Speech (voice briefings, debates) | Free tier |
+| **Google News RSS** | News aggregation | Free, no key |
+| **GDELT** | Geopolitical event analysis | Free, no key |
+| **Hacker News** | Tech news | Free, no key |
+| **Reddit** | Social signals | Free, no key |
+| **CoinGecko** | Crypto prices | Free, no key |
+| + 30 more | See worldmonitor data feeds | Free |
 
-- Vite
-- TypeScript
-- World Monitor data pipeline and public-source proxies
-- Large multi-feed dashboard experience in `worldmonitor/`
+---
 
-### Mobile
+## API Endpoints
 
-- Expo
-- React Native
-- TypeScript
-- Shared live backend contract over HTTP
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Create account |
+| POST | `/api/auth/login` | Login, returns JWT |
+| GET | `/api/auth/me` | Get current user |
 
-## Service Integrations
+### News & Analysis
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/news` | Fetch news from selected sources |
+| POST | `/api/bias-radar` | Bias analysis across sources for a topic |
+| POST | `/api/consensus` | Multi-perspective AI consensus analysis |
+| POST | `/api/debate` | Generate pro/con debate with optional audio |
+| POST | `/api/chat` | Streaming SSE chat with real-time news context |
+| POST | `/api/chat/sync` | Non-streaming chat fallback |
 
-| Service | Role In Pulse | Status |
-| --- | --- | --- |
-| World Monitor data sources | Public-feed catalogs and dashboard intelligence coverage | Active |
-| MiniMax / OpenAI | Briefing chat, story chat, Pulse AI, and embeddings workflows | Optional |
-| ElevenLabs | Voice briefing and audio delivery | Optional |
-| InsForge | Mirror events, signals, briefings, and portfolio-impact data | Optional |
-| Memori | Prompt memory attribution and recall | Optional |
-| Alpha Vantage | Live market context for pricing-sensitive flows | Optional |
+### Voice & Audio
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/briefing/voice` | Generate voice briefing (10 languages) |
+| POST | `/api/tts` | Raw text-to-speech |
 
-## Hackathon Tracks
+### Portfolio & Intelligence
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/portfolio-advisor` | AI-driven news impact on portfolio |
+| GET | `/api/catchup` | "What Did I Miss" personalized briefing |
+| GET | `/api/breaking` | Recent breaking news |
+| POST | `/api/breaking` | Push breaking news alert |
+| GET | `/api/trending` | Trending queries |
+| GET | `/api/reports` | User's saved reports |
+| GET | `/health` | Service health check |
 
-| Track | Why Pulse Fits |
-| --- | --- |
-| AI news intelligence | Bias-aware feed clustering, briefing, story analysis, and Pulse AI follow-up chat |
-| InsForge | Optional mirror and hackathon integration path for backend persistence |
-| ElevenLabs | Voice-enabled briefings and audio-first intelligence surfaces |
-| General hackathon product | Web dashboard plus mobile app for realtime information delivery |
-
-## Public API
-
-These are the routes implemented by the current backend in this repo.
-
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| GET | `/health` | Health check |
-| GET | `/api/feed` | Live clustered feed events |
-| GET | `/api/signals` | Trade signals generated from active events |
-| GET | `/api/focus` | Focus setup intelligence for mobile |
-| POST | `/api/dashboard` | Personalized dashboard payload |
-| GET, POST | `/api/pulse-ai` | Pulse AI session bootstrap |
-| POST | `/api/pulse-ai/chat` | Pulse AI follow-up chat |
-| GET | `/api/briefing` | Current personalized briefing |
-| POST | `/api/briefing/chat` | Briefing follow-up chat |
-| POST | `/api/portfolio-impact` | Portfolio impact analysis |
-| POST | `/api/portfolio` | Compatibility alias for portfolio impact |
-| GET | `/api/stories/:storyId` | Story detail payload |
-| GET | `/api/story/:storyId` | Compatibility alias for story detail |
-| POST | `/api/stories/:storyId/chat` | Story-specific chat |
-| POST | `/api/story/:storyId/chat` | Compatibility alias for story chat |
-
-### Internal Operator Routes
-
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| POST | `/api/internal/ingest` | Run ingest step |
-| POST | `/api/internal/analyze` | Run analyze step |
-| POST | `/api/internal/feed/refresh` | Refresh feed pipeline |
-| POST | `/api/internal/signals/refresh` | Refresh signals |
-| POST | `/api/internal/briefing/refresh` | Refresh briefing |
-
-## Note On Earlier Pitch Endpoints
-
-Earlier hackathon planning referenced routes such as `/api/news`, `/api/bias-radar`, `/api/consensus`, `/api/debate`, and `/api/chat`. In this branch, those ideas are represented through the current feed, story-detail, briefing, Pulse AI, and dashboard contracts listed above.
-
-## Environment
-
-Copy `.env.example` to `.env` at the repo root.
-
-### Backend Variables
-
-```env
-PORT=8787
-PULSE_STORE_PATH=backend/data/runtime-store.json
-PULSE_STRICT_LIVE_MODE=false
-OPENAI_API_KEY=
-OPENAI_EMBEDDINGS_MODEL=text-embedding-3-small
-MINIMAX_API_KEY=
-MINIMAX_BASE_URL=https://api.minimax.io/v1
-ELEVENLABS_API_KEY=
-ELEVENLABS_VOICE_ID=
-MEMORI_API_KEY=
-ALPHA_VANTAGE_API_KEY=
-INSFORGE_BASE_URL=
-INSFORGE_ANON_KEY=
-INSFORGE_API_KEY=
-APIFY_API_KEY=
-```
-
-Notes:
-
-- `INSFORGE_URL` is also supported by the backend. If present, it overrides `INSFORGE_BASE_URL`.
-- Without provider keys, the app still runs using fallback/demo data.
-- Set `PULSE_STRICT_LIVE_MODE=true` if you want live failures to hard-fail instead of falling back.
-
-### Mobile Variable
-
-Set this before starting Expo if your backend is not on the default local URL:
-
-```powershell
-$env:EXPO_PUBLIC_PULSE_API_BASE_URL="http://localhost:8787"
-```
-
-The mobile app already defaults to `http://localhost:8787` on desktop/web and `http://10.0.2.2:8787` on Android emulators.
+---
 
 ## Quick Start
 
-### 1. Install Root and Backend Dependencies
+### Prerequisites
+- Node.js 20+
+- npm
+
+### 1. Clone & Install
 
 ```bash
+git clone https://github.com/Kush614/Pulse.git
+cd Pulse
+
+# Install backend
+cd server
 npm install
-npm run sync:worldmonitor-data
+
+# Install frontend
+cd ../worldmonitor
+npm install
 ```
 
-Optional demo-data seeding:
+### 2. Configure Environment
 
 ```bash
-npm run seed:demo
+# Copy example env
+cp server/.env.example server/.env
 ```
 
-### 2. Start The Backend
+Edit `server/.env` with your keys:
+
+```env
+# InsForge (required — get from https://insforge.com)
+INSFORGE_URL=https://your-project.us-east.insforge.app
+INSFORGE_API_KEY=your_anon_jwt
+INSFORGE_SERVICE_KEY=ik_your_service_key
+
+# ElevenLabs (required for voice features)
+ELEVENLABS_API_KEY=sk_your_key
+ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
+
+# Optional
+APIFY_API_KEY=your_key
+EXA_API_KEY=your_key
+
+# Server
+PORT=3001
+```
+
+### 3. Create Database Tables
+
+The backend uses InsForge Postgres. Create these tables via the InsForge dashboard or API:
+
+- `articles` �� title, url, source, snippet, published_at, category, metadata
+- `bias_scores` — article_id, political_lean, emotional, opinion_ratio, sensationalism, source_credibility, model_used, reasoning
+- `reports` — user_id, query, synthesis, sources, consensus, bias_summary, audio_url
+- `user_preferences` — user_id, topics, language, voice_enabled, briefing_style, last_seen_at
+- `query_history` — user_id, query, report_id
+- `breaking_news` — article_id, headline, urgency, regions
+
+### 4. Run
 
 ```bash
+# Terminal 1: Backend
+cd server
+npm run dev
+
+# Terminal 2: Frontend
+cd worldmonitor
 npm run dev
 ```
 
-The backend will start on `http://localhost:8787`.
+Open **http://localhost:3000** — the full dashboard with all Nova panels loads automatically.
 
-### 3. Start The Web Dashboard
+---
 
-```bash
-cd worldmonitor
-npm install
-npm run dev
+## Dashboard Panels
+
+### Nova AI Panels (New)
+- **Nova Chat** — Ask anything, get AI-analyzed answers with cited real-time sources
+- **Bias Radar** — Enter a topic, see bias analysis across all sources with political spectrum visualization
+- **Multi-AI Consensus** — Three AI perspectives independently analyze the same story
+- **Debate Mode** — Structured pro/con arguments with audio playback
+- **Voice Briefing** — Audio news briefings in English, Spanish, French, German, Japanese, Korean, Chinese, Hindi, Arabic, Portuguese
+- **What Did I Miss** — Catch up on news since your last visit
+- **Breaking News** — Live feed with urgency-based color coding and browser notifications
+- **AI Portfolio Advisor** — Edit your portfolio, get per-asset impact predictions based on latest news
+
+### World Monitor Panels (Existing 36+ feeds)
+- Geopolitical conflicts (ACLED, UCDP, GDELT)
+- Financial markets (Yahoo Finance, CoinGecko, Polymarket)
+- Aviation tracking (OpenSky, FAA)
+- Maritime intelligence (USNI Fleet Tracker)
+- Cyber threats (Feodo, URLhaus, AlienVault OTX, AbuseIPDB)
+- Natural disasters (USGS earthquakes, NASA FIRMS fires, NOAA weather)
+- Humanitarian data (UNHCR, World Bank)
+- Tech news (Hacker News, ArXiv)
+- And more...
+
+### Panel Controls
+- **Maximize** — Click the expand icon on any panel header to go fullscreen (Escape to exit)
+- **Resize** — Drag bottom/right edges to resize
+- **Drag & Drop** — Reorder panels by dragging headers
+- **Scroll** — All panel content is scrollable
+
+---
+
+## Hackathon Tracks
+
+| Track | Prize | How Pulse Qualifies |
+|-------|-------|-------------------|
+| **Going Merry AI News** | $1,000 | Full AI news platform with bias detection, consensus, debate, and voice briefings |
+| **InsForge** | $500 | Uses InsForge DB (6 tables), Auth (JWT), AI Gateway (GPT-4o-mini), and Storage |
+| **ElevenLabs** | $2,000 value | Voice briefings in 10 languages, dual-voice debate audio, breaking news alerts |
+| **General** | $700 | Novel portfolio advisor + world intelligence dashboard |
+
+---
+
+## Project Structure
+
+```
+Pulse/
+├── server/                    # Nova News Backend
+│   ├── src/
+│   │   ├── index.ts          # Express server, 18 API routes
+│   │   ├── insforge.ts       # InsForge REST client (DB, Auth, AI, Storage)
+│   │   ├── scrapers.ts       # Google News RSS, GDELT, HN, Reddit, CoinGecko
+│   │   ├── bias.ts           # Bias Radar, Multi-Model Consensus, Debate Mode
+│   │   ├── elevenlabs.ts     # TTS, voice briefings, debate audio
+│   │   └── types.ts          # TypeScript interfaces
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── worldmonitor/              # Frontend Dashboard
+│   ├── src/
+│   │   ├── app/
+│   │   │   └── panel-layout.ts    # Panel registration & grid layout
+│   │   ├── components/
+│   │   │   ├── Panel.ts           # Base panel class (maximize, resize, drag)
+│   │   │   ├── ChatbotPanel.ts    # Nova AI Chat (streaming SSE)
+│   │   │   ├── BiasRadarPanel.ts  # Bias analysis visualization
+│   │   │   ├── ConsensusPanel.ts  # Multi-AI consensus view
+│   │   │   ├── DebateModePanel.ts # Pro/con debate with audio
+│   │   │   ├── VoiceBriefingPanel.ts    # Multilingual voice briefings
+│   │   │   ├── CatchUpPanel.ts          # "What Did I Miss"
+│   │   │   ├── BreakingNewsRealtimePanel.ts  # Live breaking feed
+│   │   │   └── PortfolioAdvisorPanel.ts      # AI portfolio impact
+│   │   └── styles/
+│   │       └── main.css           # Panel maximize CSS
+│   ├── vite.config.ts             # Dev proxy /nova -> :3001
+│   └── package.json
+│
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
-The web dashboard runs on `http://localhost:3000`.
-
-### 4. Start The Mobile App
-
-```bash
-cd mobile
-npm install
-npm run start
-```
-
-Useful Expo commands:
-
-```bash
-npm run android
-npm run ios
-npm run web
-npm run typecheck
-```
-
-## Quality Checks
-
-### Backend
-
-```bash
-npm run typecheck
-npm test
-npm run build
-```
-
-### Mobile
-
-```bash
-cd mobile
-npm run typecheck
-```
-
-### Web Dashboard
-
-```bash
-cd worldmonitor
-npm run typecheck
-```
-
-## Data Flow
-
-1. `npm run sync:worldmonitor-data` ports local source catalogs and feed metadata into `backend/data/`.
-2. The backend refreshes live feed events from configured public sources.
-3. Feed events are clustered, scored, and written into the runtime store.
-4. Signals, dashboard payloads, briefings, story detail pages, and Pulse AI sessions are built from the live event set.
-5. The web dashboard and mobile app consume those outputs in real time and fall back gracefully when providers are unavailable.
-
-## Repo Structure
-
-```text
-.
-|-- backend/
-|   |-- src/
-|   |   |-- app.ts
-|   |   |-- server.ts
-|   |   |-- contracts.ts
-|   |   `-- services/
-|   `-- data/
-|-- mobile/
-|   |-- App.tsx
-|   |-- app.json
-|   `-- src/
-|       |-- api/
-|       |-- features/
-|       |-- theme/
-|       `-- components/
-|-- worldmonitor/
-|-- scripts/
-|-- docs/
-|-- package.json
-`-- README.md
-```
-
-## Hackathon Positioning
-
-Pulse was designed to compete as:
-
-- AI news intelligence product
-- realtime market and geopolitical monitoring tool
-- voice-enabled briefing platform
-- mobile-first and web-first hackathon demo
-
-The worldmonitor directory extends the World Monitor codebase and preserves its AGPL obligations, while the Pulse backend and mobile experience layer the hackathon-specific intelligence workflow on top.
+---
 
 ## License
 
-MIT
+This project builds upon [World Monitor](https://github.com/maxxie114/intel-marketplace) (AGPL-3.0 for the worldmonitor/ directory). The Nova server and new panels are original work created for the Fontaine Founders Hackathon.
