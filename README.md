@@ -287,4 +287,4 @@ Pulse/
 
 ## License
 
-This project builds upon [World Monitor](https://github.com/maxxie114/intel-marketplace) (AGPL-3.0 for the worldmonitor/ directory). The Nova server and new panels are original work created for the Fontaine Founders Hackathon.
+MIT
